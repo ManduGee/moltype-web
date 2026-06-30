@@ -646,7 +646,7 @@ function SessionCard({ s, idx, onClick }: { s: Session; idx: number; onClick: ()
           </h3>
           <p style={{
             fontFamily: FONT_KO, fontWeight: 400,
-            fontSize: "20px", lineHeight: "1.6", color: "rgba(255,255,255,0.9)",
+            fontSize: "16px", lineHeight: "1.6", color: "rgba(255,255,255,0.9)",
             margin: 0, wordBreak: "keep-all", whiteSpace: "pre-line",
           }}>
             {s.body}
@@ -680,7 +680,7 @@ export default function WorkshopPage() {
       <section style={{
         minHeight: "100vh",
         display: "flex", flexDirection: "column", justifyContent: "center", gap: "24px",
-        padding: "120px 56px 56px",
+        padding: "120px 56px 200px",
         boxSizing: "border-box",
         position: "relative", zIndex: 2,
       }}>
@@ -711,36 +711,36 @@ export default function WorkshopPage() {
           <div style={{ position: "absolute", top: 0, left: "55%", right: "56px" }}>
             <h2 style={{
               fontFamily: FONTS.condensed, fontWeight: 700,
-              fontSize: "60px",
+              fontSize: "40px",
               letterSpacing: "-0.03em", textTransform: "uppercase",
-              color: "#ffffff", margin: "-4px 0 28px", lineHeight: 1.05,
+              color: "#ffffff", margin: "-4px 0 20px", lineHeight: 1.1,
             }}>
               EXPERIENCE ON THE FLY,<br />TURNING UNFINISHED<br />INTO FINISHED!
             </h2>
-            <p style={{ fontFamily: FONTS.akkurat, fontSize: "21px", lineHeight: "1.5", letterSpacing: "-0.01em", color: "#888888", margin: "0 0 20px", maxWidth: "540px" }}>
+            <p style={{ fontFamily: FONTS.akkurat, fontSize: "15px", lineHeight: "1.5", letterSpacing: "-0.01em", color: "#888888", margin: "0 0 14px", maxWidth: "480px" }}>
               MOLTYPE&apos;S WORKSHOP IS OPEN TO ANYONE AS LONG AS THEY MAKE AN APPOINTMENT.
               VISIT MOLTYPE&apos;S FLAGSHIP STORE, CHOOSE YOUR OWN UNFINISHED CLOTHING,
               CHOOSE THE MATERIALS TO COMPLETE, AND THEN TRY.
               IT IS POSSIBLE WITHOUT DIFFICULT TECHNIQUES. COMPLETE THE LAST STITCH WITH YOUR HANDS.
             </p>
-            <p style={{ fontFamily: FONT_KO, fontWeight: 400, fontSize: "20px", lineHeight: "1.55", letterSpacing: "-0.02em", color: "#666666", margin: 0, maxWidth: "540px", wordBreak: "keep-all" }}>
+            <p style={{ fontFamily: FONT_KO, fontWeight: 400, fontSize: "15px", lineHeight: "1.55", letterSpacing: "-0.02em", color: "#666666", margin: 0, maxWidth: "480px", wordBreak: "keep-all" }}>
               MOLTYPE의 워크샵은 예약만 한다면 누구나 이용할 수 있습니다. MOLTYPE의 플래그십
               스토어에 방문해서, 직접 미완성된 의류를 고르고 완성하기 위한 재료를 고른 다음,
               완성해볼 수 있습니다. 어려운 기술 없이도 가능합니다. 여러분의 손으로 마지막 한 코를 완성해보세요.
             </p>
+
+            {/* 두 번째 이미지 - 국문 텍스트 바로 아래 */}
+            <motion.div
+              initial={{ clipPath: "inset(0 0 0 100%)" }}
+              animate={{ clipPath: "inset(0 0 0 0%)" }}
+              transition={{ duration: 1.1, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
+              style={{ marginTop: "32px", width: "100%", maxWidth: "480px", aspectRatio: "928 / 696", overflow: "hidden" }}
+            >
+              <img src="/workshop_title_02.png" alt="Workshop detail"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            </motion.div>
           </div>
         </div>
-
-        {/* 두 번째 이미지 - 우측 배치 */}
-        <motion.div
-          initial={{ clipPath: "inset(0 0 0 100%)" }}
-          animate={{ clipPath: "inset(0 0 0 0%)" }}
-          transition={{ duration: 1.1, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginTop: "-40px", marginLeft: "auto", width: "45%", maxHeight: "600px", overflow: "hidden" }}
-        >
-          <img src="/workshop_title_02.png" alt="Workshop detail"
-            style={{ width: "100%", height: "600px", objectFit: "cover", display: "block" }} />
-        </motion.div>
       </section>
 
       {/* Sessions section — Nudake style */}

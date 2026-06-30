@@ -100,10 +100,10 @@ export default function BrandStoryHeroCarousel({ activeIndex: externalIndex, onC
               ref={(el) => {
                 videoRefs.current[i] = el;
               }}
-              src={video.src}
+              src={Math.abs(i - activeIndex) <= 1 ? video.src : undefined}
               muted
               playsInline
-              preload="auto"
+              preload={i === activeIndex ? "auto" : "none"}
               loop
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
