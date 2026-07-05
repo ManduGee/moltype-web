@@ -657,6 +657,114 @@ function SessionCard({ s, idx, onClick }: { s: Session; idx: number; onClick: ()
   );
 }
 
+// 세로 스티치 라인: 시작 정원을 클릭하면 점(정원)이 라인을 따라 내려가고, 그 뒤를 핑크 실이 끝까지 채운다.
+// 도착하면 BOOK A SESSION 버튼이 나타난다. (uniform scale로 원이 찌그러지지 않게 preserveAspectRatio=meet 사용)
+const STITCH_PATH = "M50 30 C 12 78, 88 108, 50 160 C 12 212, 88 242, 50 300 C 12 358, 88 388, 50 446 C 30 500, 50 524, 50 578";
+
+function StitchLine({ onBook }: { onBook: () => void }) {
+  const pathRef = useRef<SVGPathElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const [started, setStarted] = useState(false);
+  const [done, setDone] = useState(false);
+  const [dot, setDot] = useState({ x: 50, y: 30 });  // 이동하는 정원 위치 (viewBox 좌표)
+  const [pinkD, setPinkD] = useState("");            // 원이 지나온 좌표를 그대로 그린 핑크 라인
+
+  useEffect(() => {
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, []);
+
+  const run = () => {
+    const p = pathRef.current;
+    if (!p || started) return;
+    setStarted(true);
+    const len = p.getTotalLength();
+    const dur = 2200;
+    const t0 = performance.now();
+    const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+    const frame = (now: number) => {
+      const raw = Math.min((now - t0) / dur, 1);
+      const t = ease(raw);
+      const dist = t * len;
+      const pt = p.getPointAtLength(dist);
+      setDot({ x: pt.x, y: pt.y });
+      // 시작점~현재 원 위치까지 실제 좌표를 샘플링해 폴리라인으로 그린다 → 원과 어긋날 수 없음
+      const steps = Math.max(2, Math.ceil(dist / 4));
+      let d = "";
+      for (let i = 0; i <= steps; i++) {
+        const q = p.getPointAtLength((dist * i) / steps);
+        d += (i === 0 ? "M" : "L") + q.x.toFixed(2) + " " + q.y.toFixed(2);
+      }
+      setPinkD(d);
+      if (raw < 1) rafRef.current = requestAnimationFrame(frame);
+      else setDone(true);
+    };
+    rafRef.current = requestAnimationFrame(frame);
+  };
+
+  return (
+    <div style={{ flexShrink: 0, width: "200px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <svg
+        viewBox="0 0 100 600" fill="none" preserveAspectRatio="xMidYMid meet"
+        style={{ flex: 1, width: "100%", minHeight: 0, display: "block", cursor: started ? "default" : "pointer" }}
+        onClick={run}
+      >
+        {/* 미완성 점선 스티치 가이드 */}
+        <path
+          ref={pathRef} d={STITCH_PATH}
+          stroke="#3f3f3f" strokeWidth="1.5" strokeDasharray="7 9" strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {/* 핑크 실 — 원이 지나온 좌표를 그대로 그린 라인이라 원과 항상 정확히 붙어있다 */}
+        {pinkD && (
+          <path
+            d={pinkD}
+            stroke={COLORS.pink} strokeWidth="2.5" strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+        {/* 시작 전 클릭 유도 펄스 링 */}
+        {!started && (
+          <motion.circle
+            cx={dot.x} cy={dot.y} r="10"
+            fill="none" stroke={COLORS.pink} strokeWidth="1.5"
+            vectorEffect="non-scaling-stroke"
+            animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.35, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            style={{ transformOrigin: `${dot.x}px ${dot.y}px` }}
+          />
+        )}
+        {/* 라인을 따라 이동하는 정원 — 클릭 전 회색, 클릭 시 핑크로 변하며 이동 (uniform scale라 항상 원형) */}
+        <circle cx={dot.x} cy={dot.y} r="6" fill={started ? COLORS.pink : "#3f3f3f"} vectorEffect="non-scaling-stroke" />
+      </svg>
+      <motion.button
+        initial={false}
+        animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        onClick={done ? onBook : undefined}
+        onMouseEnter={(e) => { if (done) e.currentTarget.style.background = COLORS.pink; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        style={{
+          background: "transparent",
+          border: `1.5px solid ${COLORS.pink}`,
+          borderRadius: "999px",
+          color: "#ffffff",
+          fontFamily: FONTS.condensed, fontWeight: 700,
+          fontSize: "14px", letterSpacing: "0.04em", textTransform: "uppercase",
+          padding: "12px 24px",
+          cursor: done ? "pointer" : "default",
+          pointerEvents: done ? "auto" : "none",
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+          marginTop: "12px",
+          transition: "background 0.25s ease",
+        }}
+      >
+        BOOK A SESSION
+      </motion.button>
+    </div>
+  );
+}
+
 export default function WorkshopPage() {
   const [vh, setVh] = useState(800);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
@@ -708,43 +816,59 @@ export default function WorkshopPage() {
             <img src="/workshop_title_01.png" alt="Workshop"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </motion.div>
-          <div style={{ position: "absolute", top: 0, left: "55%", right: "56px" }}>
-            <h2 style={{
-              fontFamily: FONTS.condensed, fontWeight: 700,
-              fontSize: "40px",
-              letterSpacing: "-0.03em", textTransform: "uppercase",
-              color: "#ffffff", margin: "-4px 0 20px", lineHeight: 1.1,
-            }}>
-              EXPERIENCE ON THE FLY,<br />TURNING UNFINISHED<br />INTO FINISHED!
-            </h2>
-            <p style={{ fontFamily: FONTS.akkurat, fontSize: "15px", lineHeight: "1.5", letterSpacing: "-0.01em", color: "#888888", margin: "0 0 14px", maxWidth: "480px" }}>
-              MOLTYPE&apos;S WORKSHOP IS OPEN TO ANYONE AS LONG AS THEY MAKE AN APPOINTMENT.
-              VISIT MOLTYPE&apos;S FLAGSHIP STORE, CHOOSE YOUR OWN UNFINISHED CLOTHING,
-              CHOOSE THE MATERIALS TO COMPLETE, AND THEN TRY.
-              IT IS POSSIBLE WITHOUT DIFFICULT TECHNIQUES. COMPLETE THE LAST STITCH WITH YOUR HANDS.
-            </p>
-            <p style={{ fontFamily: FONT_KO, fontWeight: 400, fontSize: "15px", lineHeight: "1.55", letterSpacing: "-0.02em", color: "#666666", margin: 0, maxWidth: "480px", wordBreak: "keep-all" }}>
-              MOLTYPE의 워크샵은 예약만 한다면 누구나 이용할 수 있습니다. MOLTYPE의 플래그십
-              스토어에 방문해서, 직접 미완성된 의류를 고르고 완성하기 위한 재료를 고른 다음,
-              완성해볼 수 있습니다. 어려운 기술 없이도 가능합니다. 여러분의 손으로 마지막 한 코를 완성해보세요.
-            </p>
 
-            {/* 두 번째 이미지 - 국문 텍스트 바로 아래 */}
-            <motion.div
-              initial={{ clipPath: "inset(0 0 0 100%)" }}
-              animate={{ clipPath: "inset(0 0 0 0%)" }}
-              transition={{ duration: 1.1, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ marginTop: "32px", width: "100%", maxWidth: "480px", aspectRatio: "928 / 696", overflow: "hidden" }}
-            >
-              <img src="/workshop_title_02.png" alt="Workshop detail"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </motion.div>
+          {/* 우측 영역: 텍스트 + 이미지2(하단 정렬) + 세로 스티치/CTA — 이미지1 높이에 맞춰 전체를 채운다 */}
+          <div style={{
+            position: "absolute", top: 0, bottom: 0, left: "55%", right: "56px",
+            display: "flex", gap: "40px",
+          }}>
+            {/* 좌: 텍스트(위) + 이미지2(아래, 남은 공간을 꽉 채우며 이미지1과 하단 라인 정렬) */}
+            <div style={{
+              flex: 1, minWidth: 0,
+              display: "flex", flexDirection: "column",
+            }}>
+              <div style={{ maxWidth: "480px" }}>
+                <h2 style={{
+                  fontFamily: FONTS.condensed, fontWeight: 700,
+                  fontSize: "40px",
+                  letterSpacing: "-0.03em", textTransform: "uppercase",
+                  color: "#ffffff", margin: "-4px 0 20px", lineHeight: 1.1,
+                }}>
+                  EXPERIENCE ON THE FLY,<br />TURNING UNFINISHED<br />INTO FINISHED!
+                </h2>
+                <p style={{ fontFamily: FONTS.akkurat, fontSize: "15px", lineHeight: "1.5", letterSpacing: "-0.01em", color: "#888888", margin: "0 0 14px" }}>
+                  MOLTYPE&apos;S WORKSHOP IS OPEN TO ANYONE AS LONG AS THEY MAKE AN APPOINTMENT.
+                  VISIT MOLTYPE&apos;S FLAGSHIP STORE, CHOOSE YOUR OWN UNFINISHED CLOTHING,
+                  CHOOSE THE MATERIALS TO COMPLETE, AND THEN TRY.
+                  IT IS POSSIBLE WITHOUT DIFFICULT TECHNIQUES. COMPLETE THE LAST STITCH WITH YOUR HANDS.
+                </p>
+                <p style={{ fontFamily: FONT_KO, fontWeight: 400, fontSize: "15px", lineHeight: "1.55", letterSpacing: "-0.02em", color: "#666666", margin: 0, wordBreak: "keep-all" }}>
+                  MOLTYPE의 워크샵은 예약만 한다면 누구나 이용할 수 있습니다. MOLTYPE의 플래그십
+                  스토어에 방문해서, 직접 미완성된 의류를 고르고 완성하기 위한 재료를 고른 다음,
+                  완성해볼 수 있습니다. 어려운 기술 없이도 가능합니다. 여러분의 손으로 마지막 한 코를 완성해보세요.
+                </p>
+              </div>
+
+              {/* 이미지2 — 남은 세로 공간을 flex:1로 꽉 채워 이미지1과 하단 라인 정렬 */}
+              <motion.div
+                initial={{ clipPath: "inset(0 0 0 100%)" }}
+                animate={{ clipPath: "inset(0 0 0 0%)" }}
+                transition={{ duration: 1.1, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                style={{ flex: 1, minHeight: "180px", marginTop: "28px", overflow: "hidden" }}
+              >
+                <img src="/workshop_title_02.png" alt="Workshop detail"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              </motion.div>
+            </div>
+
+            {/* 우: 세로 스티치 라인 + 시작 정원(클릭 시 라인을 따라 이동하며 핑크로 채워짐) + CTA */}
+            <StitchLine onBook={() => document.getElementById("sessions-section")?.scrollIntoView({ behavior: "smooth" })} />
           </div>
         </div>
       </section>
 
       {/* Sessions section — Nudake style */}
-      <section style={{ padding: "160px 56px 80px", position: "relative", zIndex: 2 }}>
+      <section id="sessions-section" style={{ padding: "160px 56px 80px", position: "relative", zIndex: 2 }}>
         <motion.h2 style={{
           fontFamily: FONTS.condensed, fontWeight: 700,
           fontSize: "clamp(16px, 2vw, 28px)",
