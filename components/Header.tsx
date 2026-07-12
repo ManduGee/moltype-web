@@ -38,8 +38,17 @@ export default function Header() {
         borderBottom: "1px solid rgba(255,255,255,0.15)",
       }}
     >
-      {/* Logo → home */}
-      <Link href="/" style={{ display: "flex", alignItems: "center", cursor: navCursor }}>
+      {/* Logo → home. 이미 홈이면 Link가 리마운트를 안 시키므로, 인트로 재생 이벤트를 직접 쏜다 */}
+      <Link
+        href="/"
+        onClick={(e) => {
+          if (isHome) {
+            e.preventDefault();
+            window.dispatchEvent(new Event("moltype:replay-intro"));
+          }
+        }}
+        style={{ display: "flex", alignItems: "center", cursor: navCursor }}
+      >
         <Image
           src="/Moltype_LOGO_BLACK.png"
           alt="MOLTYPE"
