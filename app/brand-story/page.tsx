@@ -208,11 +208,11 @@ function ConceptRow({ card, active, onEnter, onLeave }: { card: typeof CONCEPT_C
         gridTemplateColumns: "560px 1fr",
         gap: "40px",
         alignItems: "center",
-        padding: "72px 0",
+        padding: "36px 0",
         borderBottom: "none",
         cursor: "pointer",
         overflow: "hidden",
-        height: "260px",
+        height: "160px",
       }}
     >
       {/* Left: number + title */}

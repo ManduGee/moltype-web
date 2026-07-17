@@ -83,7 +83,7 @@ export default function BrandStoryHeroCarousel({ activeIndex: externalIndex, onC
           position: "relative",
           width: "100%",
           aspectRatio: "16 / 9",
-          maxHeight: "78vh",
+          maxHeight: "842px", /* 1920 기준 줌: 1080의 78% (vh는 zoom과 충돌해 고정 px 사용) */
           overflow: "hidden",
           backgroundColor: "#111111",
         }}

@@ -85,6 +85,24 @@ export default function InteractiveLogoIntro() {
   // v9: 힌트 텍스트 위치 = 로고 하단 + 32px (top 기준)
   const [hintTop, setHintTop] = useState<number | null>(null);
 
+  // ── HAND MODE (웹캠 핸드 트래킹) ──────────────────────────────────────────
+  const [handMode,   setHandMode]   = useState(false);
+  const [handStatus, setHandStatus] = useState<"idle" | "loading" | "active" | "denied" | "error">("idle");
+  const handDrawingRef = useRef(false);      // 핀치 드로잉 on/off
+  const handSmoothRef  = useRef<{ x: number; y: number; has: boolean }>({ x: 0, y: 0, has: false });
+
+  // ── 뜨개 사운드 — 드로잉 중에만 루프 재생 ─────────────────────────────────
+  const knitAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    const a = new Audio("/Main_Sound_01.mp3");
+    a.loop = true;
+    a.volume = 1.0;
+    knitAudioRef.current = a;
+    return () => { a.pause(); knitAudioRef.current = null; };
+  }, []);
+  const playKnit = () => { const a = knitAudioRef.current; if (a && a.paused) a.play().catch(() => {}); };
+  const stopKnit = () => { const a = knitAudioRef.current; if (a && !a.paused) a.pause(); };
+
   // ── 레이아웃 계산 — outline 실제 비율 사용, fallback은 941/1672 ────────────
   const computeLogoRect = useCallback((vw: number, vh: number) => {
     const nat   = outlineNaturalRef.current;
@@ -411,6 +429,7 @@ export default function InteractiveLogoIntro() {
     if (completedRef.current) return;
     completedRef.current = true;
     isDrawing.current = false;
+    const a = knitAudioRef.current; if (a) a.pause();
     setIsComplete(true);
   }, []);
 
@@ -487,6 +506,7 @@ export default function InteractiveLogoIntro() {
       e.preventDefault();
       isDrawing.current = true;
       prevPt.current = { x: e.clientX, y: e.clientY };
+      playKnit();
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -530,6 +550,7 @@ export default function InteractiveLogoIntro() {
     const onMouseUp = () => {
       if (!isDrawing.current) return;
       isDrawing.current = false;
+      stopKnit();
       if (patternTimer.current) clearTimeout(patternTimer.current);
       nextPattern();
     };
@@ -543,6 +564,7 @@ export default function InteractiveLogoIntro() {
       const t = e.touches[0];
       isDrawing.current = true;
       prevPt.current = { x: t.clientX, y: t.clientY };
+      playKnit();
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -577,6 +599,7 @@ export default function InteractiveLogoIntro() {
     const onTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
       isDrawing.current = false;
+      stopKnit();
       if (patternTimer.current) clearTimeout(patternTimer.current);
       nextPattern();
     };
@@ -609,6 +632,139 @@ export default function InteractiveLogoIntro() {
       window.removeEventListener("wheel",      onWheel);
     };
   }, [isInsideLogo, revealBrush, markFilled, scheduleSwitch, nextPattern]);
+
+  // ── HAND MODE — 웹캠 핸드 트래킹으로 드로잉 (검지=커서, 핀치=그리기, 손 거리=브러시 크기) ──
+  useEffect(() => {
+    if (!handMode) return;
+    let running = true;
+    let raf = 0;
+    let landmarker: { detectForVideo: (v: HTMLVideoElement, t: number) => { landmarks: { x: number; y: number }[][] } } | null = null;
+    let video: HTMLVideoElement | null = null;
+    let stream: MediaStream | null = null;
+
+    const start = async () => {
+      try {
+        setHandStatus("loading");
+        // MediaPipe tasks-vision — 토글 시에만 동적 로드 (별도 청크로 코드 스플리팅)
+        const vision = await import("@mediapipe/tasks-vision");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+        );
+        landmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            delegate: "GPU",
+          },
+          numHands: 1,
+          runningMode: "VIDEO",
+        });
+
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
+        video = document.createElement("video");
+        video.srcObject = stream;
+        video.playsInline = true;
+        video.muted = true;
+        await video.play();
+        if (!running) return;
+        setHandStatus("active");
+        loop();
+      } catch (err) {
+        const denied = err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "SecurityError");
+        setHandStatus(denied ? "denied" : "error");
+        setHandMode(false);
+      }
+    };
+
+    const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+
+    const loop = () => {
+      if (!running) return;
+      if (video && landmarker && video.readyState >= 2) {
+        let res: { landmarks: { x: number; y: number }[][] } | null = null;
+        try { res = landmarker.detectForVideo(video, performance.now()); } catch { /* skip frame */ }
+        const lm = res?.landmarks?.[0];
+        if (lm && !completedRef.current) {
+          const tip   = lm[8];   // 검지 끝
+          const thumb = lm[4];   // 엄지 끝
+
+          // 좌우 반전(거울) + 화면 좌표
+          const nx = 1 - tip.x;
+          const sx = nx * window.innerWidth;
+          const sy = tip.y * window.innerHeight;
+
+          // 스무딩 (지터 제거)
+          const sm = handSmoothRef.current;
+          if (!sm.has) { sm.x = sx; sm.y = sy; sm.has = true; }
+          else { sm.x += (sx - sm.x) * 0.4; sm.y += (sy - sm.y) * 0.4; }
+          const cx = sm.x, cy = sm.y;
+
+          // 커서 UI
+          setCursorPos({ x: cx, y: cy });
+          setCursorInside(isInsideLogo(cx, cy));
+
+          // 핀치(엄지+검지) 간격 → 붙이면 그리기 / 벌린 간격 = 브러시 크기
+          const pinch = dist(thumb, tip);
+          const drawing = pinch < 0.05;
+
+          // 그리는 중이 아닐 때(손가락 벌림)만 간격으로 브러시 크기 설정 → 붙이면 그 크기로 고정
+          if (!drawing) {
+            const bt = Math.max(0, Math.min(1, (pinch - 0.05) / (0.28 - 0.05)));
+            brushR.current = BRUSH_MIN + bt * (BRUSH_MAX - BRUSH_MIN);
+            setBrushVis(brushR.current);
+          }
+
+          if (drawing) {
+            if (!handDrawingRef.current) {
+              handDrawingRef.current = true;
+              isDrawing.current = true;
+              prevPt.current = { x: cx, y: cy };
+              playKnit();
+            }
+            if (!hasStartedRef.current) { hasStartedRef.current = true; setHasStarted(true); }
+            const prev = prevPt.current;
+            const d = Math.hypot(cx - prev.x, cy - prev.y);
+            if (d >= 3) {
+              const r = brushR.current;
+              const steps = Math.max(1, Math.floor(d / (r * 0.4)));
+              for (let i = 1; i < steps; i++) {
+                const t = i / steps;
+                const ix = prev.x + (cx - prev.x) * t;
+                const iy = prev.y + (cy - prev.y) * t;
+                if (isInsideLogo(ix, iy)) { revealBrush(ix, iy); markFilled(ix, iy); }
+              }
+              if (isInsideLogo(cx, cy)) { revealBrush(cx, cy); markFilled(cx, cy); }
+              prevPt.current = { x: cx, y: cy };
+            }
+            if (isInsideLogo(cx, cy)) { pendingX.current = cx; pendingY.current = cy; }
+            scheduleSwitch();
+          } else if (handDrawingRef.current) {
+            handDrawingRef.current = false;
+            isDrawing.current = false;
+            stopKnit();
+            if (patternTimer.current) clearTimeout(patternTimer.current);
+            nextPattern();
+          }
+        } else {
+          handSmoothRef.current.has = false;
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+
+    start();
+
+    return () => {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      handDrawingRef.current = false;
+      isDrawing.current = false;
+      handSmoothRef.current.has = false;
+      stopKnit();
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      setHandStatus((s) => (s === "denied" || s === "error" ? s : "idle"));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handMode, isInsideLogo, revealBrush, markFilled, scheduleSwitch, nextPattern]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const { x: lx, y: ly, w: lw, h: lh } = logoRect.current;
@@ -802,6 +958,74 @@ export default function InteractiveLogoIntro() {
         </AnimatePresence>
 
       </motion.div>
+
+      {/* ── HAND MODE 토글 — 좌측 하단 ─────────────────────────────────────── */}
+      {mounted && !isComplete && (
+        <button
+          onClick={() => { if (handMode) setHandMode(false); else { setHandStatus("loading"); setHandMode(true); } }}
+          style={{
+            position: "fixed", bottom: 32, left: 32,
+            height: 44, padding: "0 18px",
+            background: handMode ? "#F77DA6" : "rgba(255,255,255,0.08)",
+            border: handMode ? "1px solid #F77DA6" : "1px solid rgba(255,255,255,0.3)",
+            borderRadius: "22px",
+            display: "flex", alignItems: "center", gap: "9px",
+            cursor: "pointer", color: "#ffffff",
+            fontFamily: "'Univers Condensed','Arial Narrow',sans-serif",
+            fontWeight: 700, fontSize: "13px", letterSpacing: "0.02em", textTransform: "uppercase",
+            zIndex: 1000, whiteSpace: "nowrap",
+            transition: "all 0.2s",
+          }}
+          title="웹캠으로 손 동작 인식 (엄지+검지 핀치로 그리기)"
+        >
+          <span style={{ fontSize: "16px", lineHeight: 1 }}>✋</span>
+          {handMode
+            ? (handStatus === "loading" ? "LOADING…" : "HAND MODE ON")
+            : "HAND MODE"}
+        </button>
+      )}
+
+      {/* HAND MODE 안내 / 오류 메시지 */}
+      <AnimatePresence>
+        {handMode && (handStatus === "loading" || handStatus === "active") && (
+          <motion.div
+            key="hand-hint"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            style={{
+              position: "fixed", bottom: 86, left: 32,
+              maxWidth: 260, pointerEvents: "none", zIndex: 1000,
+              fontFamily: "Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
+              color: "rgba(255,255,255,0.6)", letterSpacing: "-0.01em",
+            }}
+          >
+            {handStatus === "loading"
+              ? "카메라와 손 인식 모델을 불러오는 중…"
+              : "엄지+검지를 붙이면 그려지고, 벌린 간격이 브러시 크기가 돼요. 벌려서 크기를 정한 뒤 붙여 그려보세요."}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {(handStatus === "denied" || handStatus === "error") && (
+          <motion.div
+            key="hand-err"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed", bottom: 86, left: 32,
+              maxWidth: 260, pointerEvents: "none", zIndex: 1000,
+              fontFamily: "Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
+              color: "rgba(247,125,166,0.9)", letterSpacing: "-0.01em",
+            }}
+          >
+            {handStatus === "denied"
+              ? "카메라 권한이 거부됐어요. 마우스로 계속 진행할 수 있어요."
+              : "손 인식을 시작하지 못했어요. 마우스로 계속 진행할 수 있어요."}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 완료 버튼 — 드로잉 중일 때 하단 우측에 표시 */}
       <AnimatePresence>

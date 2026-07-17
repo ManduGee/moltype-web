@@ -28,7 +28,9 @@ export default function Header() {
       style={{
         position: "fixed",
         top: 0, left: 0, right: 0,
-        zIndex: 100,
+        zIndex: 150,
+        // 페이지 줌을 상쇄해 모든 탭에서 헤더를 동일한 실제 크기(1:1)로 고정
+        zoom: "var(--inv-zoom, 1)",
         padding: "0 48px",
         height: `${HEADER_H}px`,
         display: "flex",

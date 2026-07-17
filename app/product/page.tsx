@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import {
+  motion, AnimatePresence, animate,
+  useMotionValue, useVelocity, useSpring, useTransform, useMotionValueEvent,
+} from "framer-motion";
 import Image from "next/image";
 import PageLayout from "@/components/PageLayout";
 import BrandStoryHeroCarousel from "@/components/BrandStoryHeroCarousel";
@@ -13,13 +16,16 @@ const SIZES = ["XS", "S", "M", "L", "XL"] as const;
 const SEASON_PRODUCTS = [
   // 0 — Spring
   [
-    { id: 1,  name: "Spring 01", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Spring_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 2,  name: "Spring 02", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/Spring_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 3,  name: "Spring 03", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/Spring_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 4,  name: "Spring 04", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/Spring_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 5,  name: "Spring 05", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/Spring_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 6,  name: "Spring 06", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/Spring_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Spring 07", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/Spring_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 1,  name: "Spring 01", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Spring/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 2,  name: "Spring 02", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 3,  name: "Spring 03", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 4,  name: "Spring 04", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 5,  name: "Spring 05", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 6,  name: "Spring 06", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Spring/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Spring 07", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Spring 08", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 112,000" },
+    { id: 9,  name: "Spring 09", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 158,000" },
+    { id: 10, name: "Spring 10", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_10.png", bg: "#F8FDF9", price: "₩ 142,000" },
   ],
   // 1 — Summer
   [
@@ -68,13 +74,24 @@ const SEASON_LABELS = ["Spring", "Summer", "Autumn", "Winter"] as const;
 // ─── Product Detail Modal ─────────────────────────────────────────────────────
 type CartItem = { name: string; size: string; price: string; image: string; product: Product };
 
+const FONT_KO = "'SUIT','Pretendard',sans-serif";
+
+// 영문 설명 → 한글 설명 (2줄) 매핑
+const DESC_KO: Record<string, string> = {
+  "A ribbed crop top with an open neckline. Designed to be completed.": "오픈 넥라인의 골지 크롭탑.\n마지막 완성은 당신의 손에 남겨두었습니다.",
+  "Open-ended wear for open-ended use. Patch the flower or leave it.": "열린 쓰임을 위한 열린 옷.\n꽃을 달아도, 비워두어도 좋습니다.",
+  "A pair of shorts with space left at the seam.": "솔기에 여백을 남긴 쇼츠.\n비어있는 자리가 곧 시작점이 됩니다.",
+  "A wearable surface made to be interrupted. Same form, new skin.": "중단되기 위해 만들어진 입는 표면.\n같은 형태, 새로운 스킨.",
+  "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
+};
+
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [mainImg, setMainImg] = useState(p.image);
   const [added, setAdded] = useState(false);
 
-  // 썸네일: 메인 이미지를 포함해 동일 이미지 3장 (실제 상품별 다중 이미지로 교체 가능)
-  const thumbs = [p.image, p.image, p.image];
+  // 썸네일: 메인 이미지를 포함해 동일 이미지 6장 (실제 상품별 다중 이미지로 교체 가능)
+  const thumbs = [p.image, p.image, p.image, p.image, p.image, p.image];
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -106,8 +123,8 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff",
-          width: "min(90vw, 960px)",
-          maxHeight: "90vh",
+          width: "960px", maxWidth: "90vw",
+          maxHeight: "972px", /* 1080의 90% (zoom 대응 고정 px) */
           overflowY: "auto",
           display: "flex",
           flexDirection: "row",
@@ -138,7 +155,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                   width: "72px", height: "90px",
                   backgroundColor: p.bg,
                   cursor: "pointer",
-                  border: mainImg === src && i === thumbs.indexOf(mainImg) ? "1.5px solid #050505" : "1.5px solid transparent",
+                  border: mainImg === src && i === thumbs.indexOf(mainImg) ? `1.5px solid ${COLORS.pink}` : "1.5px solid transparent",
                   overflow: "hidden", position: "relative",
                   flexShrink: 0,
                 }}
@@ -148,12 +165,13 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             ))}
           </div>
 
-          {/* 메인 이미지 */}
+          {/* 메인 이미지 — 1.25배 확대 (패딩 제거 + 스케일) */}
           <div style={{
             flex: 1, backgroundColor: p.bg,
             position: "relative", aspectRatio: "3 / 4",
+            overflow: "hidden",
           }}>
-            <Image src={mainImg} alt={p.name} fill style={{ objectFit: "contain", padding: "24px" }} />
+            <Image src={mainImg} alt={p.name} fill style={{ objectFit: "contain", transform: "scale(1.12)" }} />
           </div>
         </div>
 
@@ -195,34 +213,45 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           {/* 구분선 */}
           <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "24px" }} />
 
-          {/* 설명 */}
-          <p style={{
-            fontFamily: FONTS.body, fontSize: "12px",
-            lineHeight: "1.8", color: "#888",
-            margin: "0 0 28px",
-          }}>
-            {p.desc}
-          </p>
+          {/* 설명 — 영문 2줄(Akkurat) + 한글 2줄(SUIT) */}
+          <div style={{ margin: "0 0 28px" }}>
+            <p style={{
+              fontFamily: FONTS.akkurat, fontSize: "13px",
+              lineHeight: "1.7", color: "#888",
+              margin: "0 0 10px", whiteSpace: "pre-line",
+              textTransform: "uppercase", letterSpacing: "-0.01em",
+            }}>
+              {p.desc.replace(". ", ".\n")}
+            </p>
+            <p style={{
+              fontFamily: FONT_KO, fontSize: "12px",
+              lineHeight: "1.7", color: "#999",
+              margin: 0, whiteSpace: "pre-line",
+              letterSpacing: "-0.02em", wordBreak: "keep-all",
+            }}>
+              {DESC_KO[p.desc] ?? ""}
+            </p>
+          </div>
 
           {/* 사이즈 선택 */}
           <p style={{
-            fontFamily: FONTS.condensed, fontSize: "10px",
+            fontFamily: FONTS.condensed, fontWeight: 700, fontSize: "14px",
             letterSpacing: "-0.01em", textTransform: "uppercase",
-            color: "#333", margin: "0 0 10px",
+            color: "#333", margin: "0 0 12px",
           }}>
             SIZE
           </p>
-          <div style={{ display: "flex", gap: "8px", marginBottom: "28px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "28px", flexWrap: "wrap" }}>
             {SIZES.map((size) => (
               <button
                 key={size}
                 onClick={() => setSelectedSize(size)}
                 style={{
-                  width: "48px", height: "48px",
+                  width: "56px", height: "56px",
                   border: selectedSize === size ? "2px solid #F77DA6" : "1px solid #ddd",
-                  background: "#fff",
-                  color: selectedSize === size ? "#F77DA6" : "#333",
-                  fontFamily: FONTS.condensed, fontSize: "12px",
+                  background: selectedSize === size ? "#F77DA6" : "#fff",
+                  color: selectedSize === size ? "#ffffff" : "#333",
+                  fontFamily: FONTS.condensed, fontSize: "14px",
                   letterSpacing: "-0.01em", cursor: "pointer",
                   transition: "all 0.2s",
                 }}
@@ -232,11 +261,12 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             ))}
           </div>
 
-          {/* 장바구니 */}
+          {/* 장바구니 — 남는 공간을 밀어내고 패널 하단 쪽에 배치 */}
           <button
             onClick={handleAddToCart}
             disabled={!selectedSize}
             style={{
+              marginTop: "auto",
               width: "100%", height: "52px",
               background: added ? "#F77DA6" : selectedSize ? "#050505" : "#e0e0e0",
               color: selectedSize ? "#fff" : "#aaa",
@@ -371,7 +401,199 @@ function ProductCard({ p, index, onClick }: { p: Product; index: number; onClick
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── THE RACK — 옷장 행거 브라우징 (무한 루프 + 원근 스케일) ───────────────────
+// 드래그로 옷을 밀어 넘기고, 중앙에 온 옷이 가장 크고 선명, 양옆은 점점 작아진다.
+// 무한 루프라 좌우 여백이 없고, 레일 이동 속도에 따라 옷걸이가 스윙한다.
+const RACK_ITEM_W = 380;        // 아이템 폭
+const RACK_SPACING = 210;       // 오프셋(드래그/스냅) 단위 — 아이템당 이동량
+const RACK_HALF = 8;            // 중앙 기준 좌우로 렌더할 슬롯 수
+const RACK_CENTER_SPREAD = 300; // 중앙 부근 간격을 넓히는 양
+const RACK_SPREAD_SIGMA = 1.3;  // 넓힘이 감쇠하는 거리
+
+function RackSlot({ slotIndex, offset, product, railRot }: {
+  slotIndex: number; offset: any; product: Product; railRot: any;
+}) {
+  const rel     = useTransform(offset, (o: number) => slotIndex - o / RACK_SPACING); // 중앙 기준 거리(아이템 단위)
+  // 중앙 부근일수록 간격을 넓힌다 (선형 간격 + 중앙 가우시안 확장)
+  const xPos    = useTransform(rel, (r) => {
+    const s = Math.sign(r), a = Math.abs(r);
+    return s * (RACK_SPACING * a + RACK_CENTER_SPREAD * RACK_SPREAD_SIGMA * (1 - Math.exp(-a / RACK_SPREAD_SIGMA)));
+  });
+  const scale   = useTransform(rel, (r) => Math.max(0.5, 1.5 - Math.abs(r) * 0.3));
+  const opacity = useTransform(rel, (r) => Math.max(0.22, 1 - Math.abs(r) * 0.34));
+  const zIndex  = useTransform(rel, (r) => Math.round(100 - Math.abs(r) * 10));
+
+  return (
+    <motion.div
+      style={{
+        position: "absolute", top: 0, left: "50%",
+        width: RACK_ITEM_W, marginLeft: -RACK_ITEM_W / 2,
+        x: xPos, scale, opacity, zIndex,
+        rotate: railRot, transformOrigin: "50% 6%",
+        cursor: "pointer",
+      }}
+    >
+      {/* 옷걸이+옷 통짜 에셋 (300×320 비율 = 900×960). 전용 에셋(/assets/)이 있으면 사용, 없으면 기본 에셋 */}
+      <img
+        src={product.image.startsWith("/assets/") ? product.image : "/Website_Product_Asset.png"}
+        alt={product.name}
+        draggable={false}
+        style={{
+          width: "100%", aspectRatio: "300 / 320", objectFit: "contain",
+          display: "block",
+          pointerEvents: "none", userSelect: "none",
+        }}
+      />
+    </motion.div>
+  );
+}
+
+function HangerRack({ products, onSelect }: { products: readonly Product[]; onSelect: (p: Product) => void }) {
+  const n = products.length;
+  const offset = useMotionValue(0);
+  const [base, setBase] = useState(0);       // 현재 중앙 슬롯 인덱스(정수)
+  const [centerProd, setCenterProd] = useState(0);
+
+  const drag = useRef({ active: false, startX: 0, startOffset: 0, moved: false });
+  const tap = useRef({ lastT: 0, timer: null as ReturnType<typeof setTimeout> | null });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const vel = useVelocity(offset);
+  const railRot = useSpring(useTransform(vel, [-2000, 2000], [10, -10]), { stiffness: 150, damping: 12 });
+
+  const wrap = (i: number) => ((i % n) + n) % n;
+
+  useMotionValueEvent(offset, "change", (o) => {
+    const c = Math.round(o / RACK_SPACING);
+    setBase((prev) => (prev !== c ? c : prev));
+    setCenterProd(wrap(c));
+  });
+
+  const snapToOffsetIndex = (i: number) =>
+    animate(offset, i * RACK_SPACING, { type: "spring", stiffness: 190, damping: 28 });
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    offset.stop();
+    drag.current = { active: true, startX: e.clientX, startOffset: offset.get(), moved: false };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d.active) return;
+    const dx = e.clientX - d.startX;
+    if (Math.abs(dx) > 4) d.moved = true;
+    offset.set(d.startOffset - dx);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d.active) return;
+    d.active = false;
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+
+    if (d.moved) {
+      // 드래그 → 관성 스냅
+      const projected = offset.get() + vel.get() * 0.12;
+      snapToOffsetIndex(Math.round(projected / RACK_SPACING));
+      return;
+    }
+
+    // 탭(드래그 아님) → 더블탭이면 상세 오픈, 싱글탭이면 좌우 이동
+    const now = performance.now();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const relX = rect ? e.clientX - rect.left - rect.width / 2 : 0;
+
+    if (now - tap.current.lastT < 300) {
+      // 더블클릭 → 중앙 상품 상세
+      if (tap.current.timer) { clearTimeout(tap.current.timer); tap.current.timer = null; }
+      tap.current.lastT = 0;
+      onSelect(products[wrap(Math.round(offset.get() / RACK_SPACING))]);
+    } else {
+      tap.current.lastT = now;
+      const dir = relX > 60 ? 1 : relX < -60 ? -1 : 0;
+      if (tap.current.timer) clearTimeout(tap.current.timer);
+      tap.current.timer = setTimeout(() => {
+        tap.current.timer = null;
+        if (dir !== 0) snapToOffsetIndex(Math.round(offset.get() / RACK_SPACING) + dir);
+      }, 300);
+    }
+  };
+
+  const slots = [];
+  for (let k = -RACK_HALF; k <= RACK_HALF; k++) {
+    const slotIndex = base + k;
+    slots.push(
+      <RackSlot
+        key={slotIndex}
+        slotIndex={slotIndex}
+        offset={offset}
+        product={products[wrap(slotIndex)]}
+        railRot={railRot}
+      />
+    );
+  }
+
+  const focused = products[centerProd];
+
+  return (
+    <div>
+      <div
+        ref={containerRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        style={{
+          position: "relative", overflow: "hidden",
+          height: "640px", touchAction: "pan-y", cursor: "grab",
+          userSelect: "none",
+        }}
+      >
+        {/* 행거 레일 봉 — 에셋 고리 위치(약 34px)에 맞춤, 은은하게 */}
+        <div style={{
+          position: "absolute", top: "44px", left: 0, right: 0,
+          height: "4px",
+          background: "linear-gradient(180deg, #e0e0e0 0%, #b5b5b5 60%, #d6d6d6 100%)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+          opacity: 0.5,
+          zIndex: 0,
+        }} />
+        <div style={{ position: "absolute", top: "34px", left: 0, right: 0, bottom: 0 }}>
+          {slots}
+        </div>
+      </div>
+
+      {/* 포커스된 옷 정보 */}
+      <div style={{ textAlign: "center", padding: "16px 24px 0", minHeight: "72px" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={centerProd}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22 }}
+          >
+            <p style={{
+              fontFamily: FONTS.condensed, fontWeight: 700,
+              fontSize: "20px", letterSpacing: "-0.02em", textTransform: "uppercase",
+              color: "#050505", margin: "0 0 4px",
+            }}>
+              {focused?.name}
+            </p>
+            <p style={{ fontFamily: FONTS.body, fontSize: "13px", color: "#888", margin: 0 }}>
+              {focused?.price}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+        <p style={{
+          fontFamily: FONTS.body, fontSize: "11px", color: "#bbb",
+          margin: "20px 0 0", letterSpacing: "0.1em",
+        }}>
+          DRAG · DOUBLE-CLICK TO OPEN
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductPage() {
   const [seasonIndex, setSeasonIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -388,89 +610,88 @@ export default function ProductPage() {
       {/* ── 상단 Hero 캐러셀 ─────────────────────────────────────────────── */}
       <BrandStoryHeroCarousel activeIndex={seasonIndex} onChange={setSeasonIndex} autoPlay={false} loopVideo={true} />
 
-      {/* ── Scroll to Explore ──────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-        style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 24px 8px" }}
-      >
-        <div style={{ width: "1px", height: "20px", marginBottom: "12px", overflow: "hidden", position: "relative" }}>
-          <motion.div
-            animate={{ height: ["0px", "20px", "0px"] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: "1px", backgroundColor: "#999", position: "absolute", bottom: 0 }}
-          />
-        </div>
-        <p style={{
-          fontFamily: FONTS.body, fontSize: "11px",
-          letterSpacing: "-0.01em", textTransform: "uppercase",
-          color: "#999", margin: 0,
-        }}>
-          Scroll To Explore
-        </p>
-      </motion.div>
+      {/* ── 시즌 레이블 + 랙 — 한 섹션에 묶어 스크롤 시 함께 한 화면에 담김 ── */}
+      <section style={{ minHeight: "1015px", display: "flex", flexDirection: "column", justifyContent: "center", padding: "20px 0 60px" }}>
+      {/* 시즌 레이블 + 좌우 화살표 — 이름 정중앙, 화살표는 글자 양옆 40px */}
+      <div style={{ height: "48px", display: "flex", alignItems: "center", justifyContent: "center", gap: "40px" }}>
+        {/* 이전 계절 */}
+        <button
+          onClick={() => setSeasonIndex((seasonIndex - 1 + SEASON_LABELS.length) % SEASON_LABELS.length)}
+          aria-label="Previous season"
+          style={{
+            flexShrink: 0,
+            background: "none", border: "1px solid #dcdcdc", borderRadius: "50%",
+            width: "34px", height: "34px", cursor: "pointer", color: "#555",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.pink; e.currentTarget.style.color = COLORS.pink; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#dcdcdc"; e.currentTarget.style.color = "#555"; }}
+        >
+          &#8592;
+        </button>
 
-      {/* ── 시즌 레이블 ──────────────────────────────────────────────────── */}
-      <div style={{ padding: "32px 56px 0", display: "flex", alignItems: "center", gap: "16px" }}>
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={seasonIndex}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
-            style={{
-              fontFamily: FONTS.condensed, fontWeight: 700,
-              fontSize: "clamp(19px, 2.67vw, 37px)",
-              letterSpacing: "-0.02em", textTransform: "uppercase",
-              color: "#050505", margin: 0, lineHeight: 1,
-            }}
-          >
-            {SEASON_LABELS[seasonIndex]}
-          </motion.p>
-        </AnimatePresence>
-        <div style={{ flex: 1, height: "1px", backgroundColor: "#ebebeb" }} />
-        <p style={{
-          fontFamily: FONTS.body, fontSize: "11px",
-          letterSpacing: "0em", color: "#aaaaaa",
-          margin: 0, textTransform: "uppercase",
-        }}>
-          {products.length} items
-        </p>
+        {/* 시즌 이름 — 가장 긴 이름 기준 고정 너비라 화살표 위치가 흔들리지 않음 */}
+        <div style={{ width: "220px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={seasonIndex}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                fontFamily: FONTS.condensed, fontWeight: 700,
+                fontSize: "clamp(19px, 2.67vw, 37px)",
+                letterSpacing: "-0.02em", textTransform: "uppercase",
+                color: "#050505", margin: 0, lineHeight: 1, textAlign: "center", whiteSpace: "nowrap",
+              }}
+            >
+              {SEASON_LABELS[seasonIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* 다음 계절 */}
+        <button
+          onClick={() => setSeasonIndex((seasonIndex + 1) % SEASON_LABELS.length)}
+          aria-label="Next season"
+          style={{
+            flexShrink: 0,
+            background: "none", border: "1px solid #dcdcdc", borderRadius: "50%",
+            width: "34px", height: "34px", cursor: "pointer", color: "#555",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.pink; e.currentTarget.style.color = COLORS.pink; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#dcdcdc"; e.currentTarget.style.color = "#555"; }}
+        >
+          &#8594;
+        </button>
       </div>
 
-      {/* ── 상품 그리드 ──────────────────────────────────────────────────── */}
-      <section style={{ padding: "40px 56px 100px" }}>
+      {/* THE RACK — 행거 브라우징 */}
+      <div style={{ width: "100%", marginTop: "40px" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={seasonIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-              gap: "56px 32px",
-            }}
+            initial={{ x: 340, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -340, opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
-            {products.map((p, i) => (
-              <ProductCard
-                key={`${seasonIndex}-${p.id}-${i}`}
-                p={p}
-                index={i}
-                onClick={() => setSelectedProduct(p)}
-              />
-            ))}
+            <HangerRack
+              products={products}
+              onSelect={(p) => setSelectedProduct(p)}
+            />
           </motion.div>
         </AnimatePresence>
+      </div>
       </section>
 
-      {/* Product_Spring_Line divider */}
-      <div style={{ overflow: "hidden", margin: "0 0 0", display: "flex" }}>
-        <img src="/Product_Spring_Line.png" alt="" style={{ width: "50%", height: "20px", objectFit: "cover" }} />
-        <img src="/Product_Spring_Line.png" alt="" style={{ width: "50%", height: "20px", objectFit: "cover" }} />
+      {/* 하단 그래픽 라인 — 20px 위로 */}
+      <div style={{ overflow: "hidden", display: "flex", marginTop: "-20px" }}>
+        <img src="/Web_Graphic_Line_01.jpg" alt="" style={{ width: "100%", height: "20px", objectFit: "cover" }} />
       </div>
 
       {/* Footer note */}

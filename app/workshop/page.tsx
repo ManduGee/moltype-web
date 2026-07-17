@@ -938,8 +938,8 @@ export default function WorkshopPage() {
           </button>
         </div>
 
-        {/* 2x3 image grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        {/* 3x2 image grid — 3개씩 2줄 (좌우 여백은 섹션 패딩으로 유지) */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
           {SESSIONS.map((s, i) => (
             <SessionCard key={s.name} s={s} idx={i} onClick={() => setActiveSession(s)} />
           ))}
