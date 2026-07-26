@@ -29,15 +29,15 @@ const SEASON_PRODUCTS = [
   ],
   // 1 — Summer
   [
-    { id: 1,  name: "Summer 01", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Summer_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 2,  name: "Summer 02", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/Summer_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 3,  name: "Summer 03", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/Summer_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 4,  name: "Summer 04", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/Summer_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 5,  name: "Summer 05", tag: "SUMMER / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/Summer_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 6,  name: "Summer 06", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/Summer_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Summer 07", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/Summer_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Summer 08", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/Summer_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 9,  name: "Summer 09", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/Summer_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 1,  name: "Summer 01", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Summer/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 2,  name: "Summer 02", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Summer/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 3,  name: "Summer 03", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Summer/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 4,  name: "Summer 04", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Summer/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 5,  name: "Summer 05", tag: "SUMMER / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Summer/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 6,  name: "Summer 06", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Summer/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Summer 07", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Summer/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Summer 08", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Summer/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 9,  name: "Summer 09", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Summer/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
   ],
   // 2 — Autumn
   [

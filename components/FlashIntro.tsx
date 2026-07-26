@@ -43,6 +43,29 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 재생 감시 — setInterval 기반이라 백그라운드 탭에서도 동작한다 (rAF는 hidden 탭에서 완전 정지).
+  // 브라우저가 영상을 강제 pause시키면 재개하고, 3초 이상 진행이 없으면 인트로를 강제 종료한다
+  // (오버레이가 페이지를 영원히 덮는 것 방지).
+  useEffect(() => {
+    if (phase !== 3) return;
+    let lastT = -1;
+    let stallCount = 0;
+    const t = setInterval(() => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (v.currentTime !== lastT) {
+        lastT = v.currentTime;
+        stallCount = 0;
+        return;
+      }
+      stallCount += 1;
+      if (v.paused && !doneRef.current) v.play().catch(() => {});
+      if (stallCount >= 6) finish(); // 500ms × 6 = 3초 정지 시 종료
+    }, 500);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
   // rAF로 매 프레임 직접 transform을 갱신 — timeupdate(약 250ms 간격) 대비 완전히 부드러움
   useEffect(() => {
     if (phase < 3) return;
@@ -118,6 +141,13 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           muted
           playsInline
           onEnded={finish}
+          onError={finish}
+          // 디코더 포화 등으로 autoplay가 거부되면 재시도하고, 그래도 안 되면 인트로를 끝낸다
+          // (영상이 멈춘 채 오버레이가 페이지 전체를 영원히 덮는 것 방지)
+          onLoadedData={(e) => {
+            const v = e.currentTarget;
+            v.play().catch(() => finish());
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25, ease: "easeOut" }}

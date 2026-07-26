@@ -88,8 +88,13 @@ export default function InteractiveLogoIntro() {
   // ── HAND MODE (웹캠 핸드 트래킹) ──────────────────────────────────────────
   const [handMode,   setHandMode]   = useState(false);
   const [handStatus, setHandStatus] = useState<"idle" | "loading" | "active" | "denied" | "error">("idle");
-  const handDrawingRef = useRef(false);      // 핀치 드로잉 on/off
+  const handDrawingRef = useRef(false);      // 검지 드로잉 on/off (로고 내부 여부로 결정)
   const handSmoothRef  = useRef<{ x: number; y: number; has: boolean }>({ x: 0, y: 0, has: false });
+  // 핀치(엄지+검지)를 두 번 벌렸다 모으면 패턴 전환 — 사이클 상태머신
+  const pinchCycleRef = useRef<{ phase: "closed" | "opened"; cycles: number; lastCycleT: number }>({ phase: "closed", cycles: 0, lastCycleT: 0 });
+  const [dwellProgress, setDwellProgress] = useState(0); // COMPLETE 버튼 손가락 dwell-click 진행률(0~1)
+  const dwellStartRef   = useRef<number | null>(null);
+  const completeBtnRef  = useRef<HTMLButtonElement | null>(null);
 
   // ── 뜨개 사운드 — 드로잉 중에만 루프 재생 ─────────────────────────────────
   const knitAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -102,6 +107,12 @@ export default function InteractiveLogoIntro() {
   }, []);
   const playKnit = () => { const a = knitAudioRef.current; if (a && a.paused) a.play().catch(() => {}); };
   const stopKnit = () => { const a = knitAudioRef.current; if (a && !a.paused) a.pause(); };
+
+  // ── 스크롤 잠금 — 드로잉 완료(COMPLETE) 전에는 아래 섹션으로 스크롤 불가 ────
+  useEffect(() => {
+    document.body.style.overflow = isComplete ? "" : "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [isComplete]);
 
   // ── 레이아웃 계산 — outline 실제 비율 사용, fallback은 941/1672 ────────────
   const computeLogoRect = useCallback((vw: number, vh: number) => {
@@ -568,8 +579,9 @@ export default function InteractiveLogoIntro() {
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      if (completedRef.current) return; // 완료 후엔 기본 스크롤 허용
       e.preventDefault();
-      if (!isDrawing.current || completedRef.current) return;
+      if (!isDrawing.current) return;
       const t = e.touches[0];
       const sx = t.clientX, sy = t.clientY;
 
@@ -604,8 +616,9 @@ export default function InteractiveLogoIntro() {
       nextPattern();
     };
 
-    // Wheel — 브러시 크기
+    // Wheel — 브러시 크기 (완료 후엔 페이지 스크롤에 양보)
     const onWheel = (e: WheelEvent) => {
+      if (completedRef.current) return;
       e.preventDefault();
       const delta = e.deltaY < 0 ? BRUSH_STEP : -BRUSH_STEP;
       brushR.current = Math.min(BRUSH_MAX, Math.max(BRUSH_MIN, brushR.current + delta));
@@ -638,7 +651,7 @@ export default function InteractiveLogoIntro() {
     if (!handMode) return;
     let running = true;
     let raf = 0;
-    let landmarker: { detectForVideo: (v: HTMLVideoElement, t: number) => { landmarks: { x: number; y: number }[][] } } | null = null;
+    let landmarker: { detectForVideo: (v: HTMLVideoElement, t: number) => { landmarks: { x: number; y: number; z: number }[][] } } | null = null;
     let video: HTMLVideoElement | null = null;
     let stream: MediaStream | null = null;
 
@@ -677,10 +690,12 @@ export default function InteractiveLogoIntro() {
 
     const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
 
+    const DWELL_MS = 700; // COMPLETE 버튼 위에 검지를 얼마나 머무르면 발동시킬지
+
     const loop = () => {
       if (!running) return;
       if (video && landmarker && video.readyState >= 2) {
-        let res: { landmarks: { x: number; y: number }[][] } | null = null;
+        let res: { landmarks: { x: number; y: number; z: number }[][] } | null = null;
         try { res = landmarker.detectForVideo(video, performance.now()); } catch { /* skip frame */ }
         const lm = res?.landmarks?.[0];
         if (lm && !completedRef.current) {
@@ -700,18 +715,17 @@ export default function InteractiveLogoIntro() {
 
           // 커서 UI
           setCursorPos({ x: cx, y: cy });
-          setCursorInside(isInsideLogo(cx, cy));
+          const inside = isInsideLogo(cx, cy);
+          setCursorInside(inside);
 
-          // 핀치(엄지+검지) 간격 → 붙이면 그리기 / 벌린 간격 = 브러시 크기
+          // 엄지+검지 간격 = 브러시 크기 (항상 갱신 — 그리는 중에도 벌리면 커짐)
           const pinch = dist(thumb, tip);
-          const drawing = pinch < 0.05;
+          const bt = Math.max(0, Math.min(1, (pinch - 0.05) / (0.28 - 0.05)));
+          brushR.current = BRUSH_MIN + bt * (BRUSH_MAX - BRUSH_MIN);
+          setBrushVis(brushR.current);
 
-          // 그리는 중이 아닐 때(손가락 벌림)만 간격으로 브러시 크기 설정 → 붙이면 그 크기로 고정
-          if (!drawing) {
-            const bt = Math.max(0, Math.min(1, (pinch - 0.05) / (0.28 - 0.05)));
-            brushR.current = BRUSH_MIN + bt * (BRUSH_MAX - BRUSH_MIN);
-            setBrushVis(brushR.current);
-          }
+          // 검지 하나만으로 드로잉 — 로고 내부에 있으면 그린다
+          const drawing = inside;
 
           if (drawing) {
             if (!handDrawingRef.current) {
@@ -732,20 +746,69 @@ export default function InteractiveLogoIntro() {
                 const iy = prev.y + (cy - prev.y) * t;
                 if (isInsideLogo(ix, iy)) { revealBrush(ix, iy); markFilled(ix, iy); }
               }
-              if (isInsideLogo(cx, cy)) { revealBrush(cx, cy); markFilled(cx, cy); }
+              revealBrush(cx, cy); markFilled(cx, cy);
               prevPt.current = { x: cx, y: cy };
             }
-            if (isInsideLogo(cx, cy)) { pendingX.current = cx; pendingY.current = cy; }
+            pendingX.current = cx; pendingY.current = cy;
             scheduleSwitch();
           } else if (handDrawingRef.current) {
             handDrawingRef.current = false;
             isDrawing.current = false;
             stopKnit();
-            if (patternTimer.current) clearTimeout(patternTimer.current);
-            nextPattern();
+          }
+
+          // 핀치를 두 번 벌렸다 모으면(open→close ×2) 브러시 패턴 전환
+          // 히스테리시스: 벌림 0.16 이상 / 모임 0.055 이하로 임계값을 다르게 둬 떨림에 안정적
+          {
+            const pc = pinchCycleRef.current;
+            const now = performance.now();
+            if (pc.cycles > 0 && now - pc.lastCycleT > 1600) { pc.cycles = 0; pc.phase = "closed"; }
+
+            if (pc.phase === "closed" && pinch > 0.16) {
+              pc.phase = "opened";
+            } else if (pc.phase === "opened" && pinch < 0.055) {
+              pc.phase = "closed";
+              pc.cycles += 1;
+              pc.lastCycleT = now;
+              if (pc.cycles >= 2) {
+                pc.cycles = 0;
+                nextPattern();
+              }
+            }
+          }
+
+          // COMPLETE 버튼 dwell-click — 검지가 버튼 위에 머무르면 진행률이 차오르다 자동 발동
+          // 버튼 자체는 작아서(높이 36px) 히트 영역을 넉넉히 패딩(50px)해 감지 안정성을 높인다
+          const btn = completeBtnRef.current;
+          if (btn) {
+            const r = btn.getBoundingClientRect();
+            const pad = 50;
+            const overBtn = r.width > 0 && cx >= r.left - pad && cx <= r.right + pad && cy >= r.top - pad && cy <= r.bottom + pad;
+            if (overBtn) {
+              if (dwellStartRef.current === null) dwellStartRef.current = performance.now();
+              const elapsed = performance.now() - dwellStartRef.current;
+              setDwellProgress(Math.min(1, elapsed / DWELL_MS));
+              if (elapsed >= DWELL_MS) {
+                dwellStartRef.current = null;
+                setDwellProgress(0);
+                handleComplete();
+              }
+            } else {
+              dwellStartRef.current = null;
+              setDwellProgress(0);
+            }
           }
         } else {
           handSmoothRef.current.has = false;
+          pinchCycleRef.current.cycles = 0;
+          pinchCycleRef.current.phase = "closed";
+          dwellStartRef.current = null;
+          setDwellProgress(0);
+          if (handDrawingRef.current) {
+            handDrawingRef.current = false;
+            isDrawing.current = false;
+            stopKnit();
+          }
         }
       }
       raf = requestAnimationFrame(loop);
@@ -759,12 +822,14 @@ export default function InteractiveLogoIntro() {
       handDrawingRef.current = false;
       isDrawing.current = false;
       handSmoothRef.current.has = false;
+      dwellStartRef.current = null;
+      setDwellProgress(0);
       stopKnit();
       if (stream) stream.getTracks().forEach((t) => t.stop());
       setHandStatus((s) => (s === "denied" || s === "error" ? s : "idle"));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handMode, isInsideLogo, revealBrush, markFilled, scheduleSwitch, nextPattern]);
+  }, [handMode, isInsideLogo, revealBrush, markFilled, scheduleSwitch, nextPattern, handleComplete]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const { x: lx, y: ly, w: lw, h: lh } = logoRect.current;
@@ -773,7 +838,7 @@ export default function InteractiveLogoIntro() {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, backgroundColor: "#000",
+      position: "relative", width: "100%", height: "100vh", backgroundColor: "#000",
       overflow: "hidden", cursor: isComplete ? "auto" : "none",
     }}>
 
@@ -822,7 +887,7 @@ export default function InteractiveLogoIntro() {
       {/* ── 커스텀 브러시 커서 — 완성 후 숨김 ──────────────────────────── */}
       {mounted && !isComplete && (
         <div style={{
-          position:      "fixed",
+          position:      "absolute",
           left:          cursorPos.x,
           top:           cursorPos.y,
           width:         brushDia,
@@ -857,7 +922,7 @@ export default function InteractiveLogoIntro() {
               exit={{ opacity: 0, y: -6, transition: { duration: 0.4 } }}
               transition={{ duration: 0.6, delay: 0.4 }}
               style={{
-                position:      "fixed",
+                position:      "absolute",
                 top:           hintTop !== null ? `calc(${hintTop}px - 56px)` : "auto",
                 bottom:        hintTop !== null ? "auto" : 120,
                 left: 0, right: 0,
@@ -906,7 +971,7 @@ export default function InteractiveLogoIntro() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
               style={{
-                position:      "fixed",
+                position:      "absolute",
                 bottom:        56,
                 left: 0, right: 0,
                 display:       "flex",
@@ -940,7 +1005,7 @@ export default function InteractiveLogoIntro() {
               animate={{ opacity: 1 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
               style={{
-                position: "fixed", bottom: 56,
+                position: "absolute", bottom: 56,
                 left: 0, right: 0,
                 textAlign: "center", pointerEvents: "none",
               }}
@@ -953,6 +1018,20 @@ export default function InteractiveLogoIntro() {
               }}>
                 THE LAST STITCH IS ALWAYS YOURS.
               </p>
+              {/* 스크롤 유도 — 완료 후 아래 룩 캐러셀 섹션 안내 */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.3, 0.8, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+                style={{
+                  fontFamily: "Pretendard, sans-serif",
+                  fontSize: "10px", letterSpacing: "0.22em",
+                  textTransform: "uppercase", color: "rgba(255,255,255,0.6)",
+                  margin: "14px 0 0",
+                }}
+              >
+                Scroll to Explore ↓
+              </motion.p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -964,7 +1043,7 @@ export default function InteractiveLogoIntro() {
         <button
           onClick={() => { if (handMode) setHandMode(false); else { setHandStatus("loading"); setHandMode(true); } }}
           style={{
-            position: "fixed", bottom: 32, left: 32,
+            position: "absolute", bottom: 32, left: 32,
             height: 44, padding: "0 18px",
             background: handMode ? "#F77DA6" : "rgba(255,255,255,0.08)",
             border: handMode ? "1px solid #F77DA6" : "1px solid rgba(255,255,255,0.3)",
@@ -987,22 +1066,22 @@ export default function InteractiveLogoIntro() {
 
       {/* HAND MODE 안내 / 오류 메시지 */}
       <AnimatePresence>
-        {handMode && (handStatus === "loading" || handStatus === "active") && (
+        {handMode && !isComplete && (handStatus === "loading" || handStatus === "active") && (
           <motion.div
             key="hand-hint"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             style={{
-              position: "fixed", bottom: 86, left: 32,
-              maxWidth: 260, pointerEvents: "none", zIndex: 1000,
-              fontFamily: "Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
-              color: "rgba(255,255,255,0.6)", letterSpacing: "-0.01em",
+              position: "absolute", bottom: 86, left: 32,
+              maxWidth: 340, pointerEvents: "none", zIndex: 1000,
+              fontFamily: "'SUIT','Pretendard',sans-serif", fontWeight: 500, fontSize: "12px", lineHeight: 1.5,
+              color: "rgba(255,255,255,0.75)", letterSpacing: "-0.01em",
             }}
           >
             {handStatus === "loading"
               ? "카메라와 손 인식 모델을 불러오는 중…"
-              : "엄지+검지를 붙이면 그려지고, 벌린 간격이 브러시 크기가 돼요. 벌려서 크기를 정한 뒤 붙여 그려보세요."}
+              : "검지로 그려요. 엄지+검지 간격으로 브러시 크기를 조절하고, 두 번 벌렸다 모으면 패턴이 바뀌어요."}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1014,7 +1093,7 @@ export default function InteractiveLogoIntro() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             style={{
-              position: "fixed", bottom: 86, left: 32,
+              position: "absolute", bottom: 86, left: 32,
               maxWidth: 260, pointerEvents: "none", zIndex: 1000,
               fontFamily: "Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
               color: "rgba(247,125,166,0.9)", letterSpacing: "-0.01em",
@@ -1032,17 +1111,18 @@ export default function InteractiveLogoIntro() {
         {hasStarted && !isComplete && (
           <motion.button
             key="complete"
+            ref={completeBtnRef}
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0, scale: dwellProgress > 0 ? 1.12 : 1 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             onClick={handleComplete}
             style={{
-              position: "fixed", bottom: 32, right: 32,
+              position: "absolute", bottom: 32, right: 32,
               height: 36,
               padding: "0 20px",
               background: "#F77DA6",
-              border: "none",
+              border: dwellProgress > 0 ? "2px solid #ffffff" : "none",
               borderRadius: "18px",
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: "pointer",
@@ -1054,9 +1134,21 @@ export default function InteractiveLogoIntro() {
               textTransform: "uppercase",
               zIndex: 1000,
               whiteSpace: "nowrap",
+              overflow: "hidden",
+              boxShadow: dwellProgress > 0 ? "0 0 0 6px rgba(247,125,166,0.25)" : "none",
             }}
           >
-            COMPLETE
+            {/* 핸드모드 dwell-click 진행률 오버레이 — 손가락을 버튼 위에 머무르면 채워지며 자동 발동 */}
+            {handMode && dwellProgress > 0 && (
+              <span style={{
+                position: "absolute", inset: 0,
+                width: `${dwellProgress * 100}%`,
+                background: "rgba(255,255,255,0.35)",
+                transition: "width 0.05s linear",
+                pointerEvents: "none",
+              }} />
+            )}
+            <span style={{ position: "relative" }}>COMPLETE</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -1074,7 +1166,7 @@ export default function InteractiveLogoIntro() {
               transition={{ duration: 0.8, delay: 0.8 }}
               onClick={handleSave}
               style={{
-                position: "fixed", bottom: 32, right: 88,
+                position: "absolute", bottom: 32, right: 88,
                 width: 44, height: 44,
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.3)",
@@ -1102,7 +1194,7 @@ export default function InteractiveLogoIntro() {
               transition={{ duration: 0.8, delay: 0.6 }}
               onClick={() => window.location.reload()}
               style={{
-                position: "fixed", bottom: 32, right: 32,
+                position: "absolute", bottom: 32, right: 32,
                 width: 44, height: 44,
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.3)",
