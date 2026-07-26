@@ -41,16 +41,15 @@ const SEASON_PRODUCTS = [
   ],
   // 2 — Autumn
   [
-    { id: 1, name: "Autumn 01", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/Fall_01.png", bg: "#F8FDF9", price: "₩ 158,000" },
-    { id: 2, name: "Autumn 02", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Fall_02.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 3, name: "Autumn 03", tag: "AUTUMN / 2026", desc: "The seam is the question. You decide where it ends.", image: "/Fall_03.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 4, name: "Autumn 04", tag: "AUTUMN / 2026", desc: "A pair of shorts with space left at the seam.", image: "/Fall_04.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 5, name: "Autumn 05", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/Fall_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
-    { id: 6, name: "Autumn 06", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/Fall_06.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 7, name: "Autumn 07", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/Fall_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8, name: "Autumn 08", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/Fall_08.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 9, name: "Autumn 09", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Fall_09.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 10, name: "Autumn 10", tag: "AUTUMN / 2026", desc: "The seam is the question. You decide where it ends.", image: "/Fall_10.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 1, name: "Autumn 01", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 158,000" },
+    { id: 2, name: "Autumn 02", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Fall/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 3, name: "Autumn 03", tag: "AUTUMN / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Fall/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 4, name: "Autumn 04", tag: "AUTUMN / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Fall/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 5, name: "Autumn 05", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 6, name: "Autumn 06", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 7, name: "Autumn 07", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8, name: "Autumn 08", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 9, name: "Autumn 09", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Fall/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 128,000" },
   ],
   // 3 — Winter
   [
