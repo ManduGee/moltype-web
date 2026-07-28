@@ -53,16 +53,15 @@ const SEASON_PRODUCTS = [
   ],
   // 3 — Winter
   [
-    { id: 1, name: "Winter 01", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.", image: "/Winter_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 2, name: "Winter 02", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/Winter_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 3, name: "Winter 03", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Winter_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 4, name: "Winter 04", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/Winter_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 5, name: "Winter 05", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/Winter_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
-    { id: 6,  name: "Winter 06", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/Winter_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Winter 07", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/Winter_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Winter 08", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/Winter_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 9,  name: "Winter 09", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/Winter_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 10, name: "Winter 10", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/Winter_10.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 1, name: "Winter 01", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 2, name: "Winter 02", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 3, name: "Winter 03", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 4, name: "Winter 04", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 5, name: "Winter 05", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Winter/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 6,  name: "Winter 06", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Winter 07", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Winter 08", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 9,  name: "Winter 09", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Winter/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
   ],
 ] as const;
 

@@ -66,7 +66,30 @@ function MainSlider() {
 
   const goTo = (i: number) => {
     setIdx(i);
-    setResetKey(k => k + 1);
+    setResetKey(k => k + 1); // 수동 조작 시 자동 넘김 타이머를 다시 시작
+  };
+
+  const goToOffset = (offset: number) =>
+    goTo((idx + offset + MAIN_IMAGES.length) % MAIN_IMAGES.length);
+
+  // 좌/우 화살표 — Product 페이지와 동일한 형태(34px 원형, 핑크 호버).
+  // 배경이 어두운 사진이라 테두리/글자만 흰색으로 바꿔 대비를 준다.
+  const arrowStyle: React.CSSProperties = {
+    position: "absolute", top: "50%", transform: "translateY(-50%)",
+    zIndex: 3, flexShrink: 0,
+    width: "34px", height: "34px", borderRadius: "50%",
+    background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.6)",
+    color: "#fff", fontSize: "15px", cursor: "pointer", padding: 0,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    transition: "all 0.2s",
+  };
+  const arrowHoverIn = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.borderColor = COLORS.pink;
+    e.currentTarget.style.color = COLORS.pink;
+  };
+  const arrowHoverOut = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.borderColor = "rgba(255,255,255,0.6)";
+    e.currentTarget.style.color = "#fff";
   };
 
   return (
@@ -128,7 +151,27 @@ function MainSlider() {
         </motion.div>
       </div>
 
-      {/* 슬라이더 도트 */}
+      {/* 좌/우 화살표 — 이걸로 이미지를 넘긴다 */}
+      <button
+        onClick={() => goToOffset(-1)}
+        aria-label="Previous image"
+        style={{ ...arrowStyle, left: "56px" }}
+        onMouseEnter={arrowHoverIn}
+        onMouseLeave={arrowHoverOut}
+      >
+        &#8592;
+      </button>
+      <button
+        onClick={() => goToOffset(1)}
+        aria-label="Next image"
+        style={{ ...arrowStyle, right: "56px" }}
+        onMouseEnter={arrowHoverIn}
+        onMouseLeave={arrowHoverOut}
+      >
+        &#8594;
+      </button>
+
+      {/* 슬라이더 도트 — 현재 위치 표시 겸 바로가기 */}
       <div style={{ position: "absolute", bottom: "16px", right: "56px", display: "flex", gap: "6px", zIndex: 3 }}>
         {MAIN_IMAGES.map((_, i) => (
           <button
