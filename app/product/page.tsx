@@ -114,7 +114,7 @@ const DETAIL_IMAGES: Record<string, string[]> = {
 // 패널이 고정 크기라 이미지 프레임 크기를 직접 계산한다. 높이에만 맞추면 1:1 컷이
 // 가로로 넘치고, 폭에만 맞추면 3:4 컷이 세로로 넘치므로 둘 다 만족하는 값을 쓴다.
 const MODAL_W = 1380;
-const MODAL_H = 920;
+const MODAL_H = 1040;
 const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
 const GALLERY_W = 760;       // 이미지 + 썸네일 영역
 const THUMB_W = 72;
@@ -173,7 +173,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           background: "#fff",
           /* 가로형 패널 — 높이를 넉넉히 잡아 ADD TO CART까지 스크롤 없이 들어온다 */
           width: `${MODAL_W}px`, maxWidth: "94vw",
-          height: `${MODAL_H}px`, maxHeight: "94vh",
+          height: `${MODAL_H}px`, maxHeight: "96vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "row",
@@ -196,17 +196,17 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         <div style={{
           flex: `0 0 ${GALLERY_W}px`, display: "flex", gap: `${GALLERY_GAP}px`,
           padding: `${MODAL_PAD}px 0 ${MODAL_PAD}px ${MODAL_PAD}px`,
-          alignItems: "center",
+          alignItems: "flex-start",
         }}>
           {/* 메인 이미지 — 계산된 프레임에 딱 맞아 상/하·좌/우 여백이 없다.
               클릭하면 확대해서 볼 수 있다. */}
-          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-start", justifyContent: "flex-start" }}>
             <div
               onClick={() => setZoomed(true)}
               title="클릭하면 크게 볼 수 있어요"
               style={{
                 width: `${frameW}px`, height: `${frameH}px`,
-                backgroundColor: p.bg,
+                backgroundColor: "#ffffff",
                 position: "relative",
                 overflow: "hidden",
                 cursor: "zoom-in",
@@ -226,7 +226,11 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                 }}
                 style={{
                   objectFit: "contain",
+                  /* 상단 기준 정렬 — 프레임과 비율이 어긋나도 위쪽은 잘리지 않고
+                     남거나 모자란 부분이 아래쪽으로 간다 */
+                  objectPosition: "top",
                   transform: detailCuts ? undefined : "scale(1.12)",
+                  transformOrigin: "top center",
                 }}
               />
             </div>
@@ -240,7 +244,9 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               display: "flex", flexDirection: "column", gap: "8px",
               width: `${THUMB_COL_W}px`,
               height: `${frameH}px`,
-              overflowY: "auto", overflowX: "hidden", flexShrink: 0,
+              /* scroll(=항상 표시) — auto로 두면 선택한 컷의 비율에 따라 열 높이가 바뀌면서
+                 스크롤바가 나타났다 사라져 보인다 */
+              overflowY: "scroll", overflowX: "hidden", flexShrink: 0,
             }}
           >
             {thumbs.map((src, i) => (
@@ -249,7 +255,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                 onClick={() => setMainImg(src)}
                 style={{
                   width: `${THUMB_W}px`, height: "90px",
-                  backgroundColor: p.bg,
+                  backgroundColor: "#ffffff",
                   cursor: "pointer",
                   border: mainImg === src && i === thumbs.indexOf(mainImg) ? `1.5px solid ${COLORS.pink}` : "1.5px solid transparent",
                   overflow: "hidden", position: "relative",
@@ -291,17 +297,17 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             {p.name}
           </h2>
 
-          {/* 가격 */}
+          {/* 가격 — 아래 간격(14 + 구분선 1 + 13 = 28)을 한글 설명~SIZE 간격과 맞춘다 */}
           <p style={{
             fontFamily: FONTS.condensed, fontWeight: 700,
             fontSize: "18px", color: "#050505",
-            margin: "0 0 24px",
+            margin: "0 0 14px",
           }}>
             {p.price}
           </p>
 
           {/* 구분선 */}
-          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "24px" }} />
+          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "13px" }} />
 
           {/* 설명 — 영문 2줄(Akkurat) + 한글 2줄(SUIT) */}
           <div style={{ margin: "0 0 28px" }}>
@@ -359,7 +365,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             disabled={!selectedSize}
             style={{
               marginTop: "auto",
-              width: "100%", height: "80px",
+              width: "100%", height: "240px",
               background: added ? "#F77DA6" : selectedSize ? "#050505" : "#e0e0e0",
               color: selectedSize ? "#fff" : "#aaa",
               border: "none", cursor: selectedSize ? "pointer" : "not-allowed",
