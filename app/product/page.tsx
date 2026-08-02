@@ -90,12 +90,9 @@ const DESC_KO: Record<string, string> = {
   "A wearable surface made to be interrupted. Same form, new skin.": "중단되기 위해 만들어진 입는 표면.\n같은 형태, 새로운 스킨.",
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
   [DESC_TUNDRA_EN]:
-    "극한의 한파 속에서도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은\n" +
-    "풍성한 퍼 텍스처와 가벼운 실루엣이 조화를 이루는 아우터입니다.\n" +
-    "보온성을 극대화하면서도 둔탁한 겨울 아우터의 인상을 벗어나,\n" +
-    "부드럽고 세련된 감성을 담았습니다.\n" +
-    "또한 소매와 후드에는 다양한 뜨개 패치를 자유롭게 부착할 수 있어,\n" +
-    "계절과 취향에 따라 자신만의 스타일로 커스터마이징할 수 있습니다.",
+    "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와 " +
+    "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며, " +
+    "소매와 후드에 뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -405,6 +402,8 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             style={{
               marginTop: "auto",
               width: "100%", height: `${ADD_TO_CART_H}px`,
+              /* 세로 공간이 모자랄 때 flex가 버튼부터 눌러버리므로 축소를 막는다 */
+              flexShrink: 0,
               /* 사이즈 선택 전 회색 → 선택 후 블랙 → 마우스를 올리면 핑크 */
               background: added
                 ? COLORS.pink
