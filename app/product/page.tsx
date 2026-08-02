@@ -53,7 +53,7 @@ const SEASON_PRODUCTS = [
   ],
   // 3 — Winter
   [
-    { id: 1, name: "Winter 01", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
     { id: 2, name: "Winter 02", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
     { id: 3, name: "Winter 03", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
     { id: 4, name: "Winter 04", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
@@ -83,13 +83,32 @@ const DESC_KO: Record<string, string> = {
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
 };
 
-function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [mainImg, setMainImg] = useState(p.image);
-  const [added, setAdded] = useState(false);
+// 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
+// 폴더명에 공백이 있어 URL 인코딩이 필요하다.
+const detailCut = (season: string, product: string, files: string[]) =>
+  files.map((f) => `/Product_Detail_Cut/${season}/${encodeURIComponent(product)}/${f}`);
 
-  // 썸네일: 메인 이미지를 포함해 동일 이미지 6장 (실제 상품별 다중 이미지로 교체 가능)
-  const thumbs = [p.image, p.image, p.image, p.image, p.image, p.image];
+const DETAIL_IMAGES: Record<string, string[]> = {
+  // Front → Side → Back → Product Detail 01~04
+  "Tundra Fur Jacket": detailCut("Winter", "Tundra Fur Jacket", [
+    "Front.png",
+    "Side_01.png",
+    "Side_02.png",
+    "Back.png",
+    "Product_Detail_01.png",
+    "Product_Detail_02.png",
+    "Product_Detail_03.png",
+    "Product_Detail_04.png",
+  ]),
+};
+
+function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
+  // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
+  const thumbs = DETAIL_IMAGES[p.name] ?? [p.image, p.image, p.image, p.image, p.image, p.image];
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [mainImg, setMainImg] = useState(thumbs[0]);
+  const [added, setAdded] = useState(false);
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -706,6 +725,7 @@ export default function ProductPage() {
       <AnimatePresence>
         {selectedProduct && (
           <ProductDetailModal
+            key={selectedProduct.name}
             p={selectedProduct}
             onClose={() => setSelectedProduct(null)}
             onAddToCart={handleAddToCart}
