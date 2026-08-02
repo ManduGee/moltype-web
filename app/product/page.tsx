@@ -17,7 +17,7 @@ const SIZES = ["XS", "S", "M", "L", "XL"] as const;
 const DESC_TUNDRA_EN =
   "A statement outerwear piece that pairs exceptional warmth with\n" +
   "an effortlessly refined silhouette.\n" +
-  "Crochet modules can be added to the sleeves and hood,\n" +
+  "Crochet patches can be added to the sleeves and hood,\n" +
   "transforming the jacket into a personalized expression of style.";
 
 // ─── 시즌별 상품 데이터 ────────────────────────────────────────────────────────
@@ -90,10 +90,11 @@ const DESC_KO: Record<string, string> = {
   "A wearable surface made to be interrupted. Same form, new skin.": "중단되기 위해 만들어진 입는 표면.\n같은 형태, 새로운 스킨.",
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
   [DESC_TUNDRA_EN]:
-    "극한의 한파 속에서도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와\n" +
-    "가벼운 실루엣이 조화를 이루는 아우터입니다.\n" +
-    "보온성을 극대화하면서도 둔탁한 겨울 아우터의 인상을 벗어나, 부드럽고 세련된 감성을 담았습니다.\n" +
-    "또한 소매와 후드에는 다양한 뜨개 모듈을 자유롭게 부착할 수 있어,\n" +
+    "극한의 한파 속에서도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은\n" +
+    "풍성한 퍼 텍스처와 가벼운 실루엣이 조화를 이루는 아우터입니다.\n" +
+    "보온성을 극대화하면서도 둔탁한 겨울 아우터의 인상을 벗어나,\n" +
+    "부드럽고 세련된 감성을 담았습니다.\n" +
+    "또한 소매와 후드에는 다양한 뜨개 패치를 자유롭게 부착할 수 있어,\n" +
     "계절과 취향에 따라 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
@@ -123,16 +124,20 @@ const MODAL_W = 1380;
 const MODAL_H = 960;
 const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
 const THUMB_W = 72;
-const THUMB_COL_W = 84;      // 썸네일 + 스크롤바 자리 (썸네일이 잘리지 않게)
+const THUMB_COL_PAD = 10;    // 선택 테두리가 열 경계에 닿지 않도록 하는 안쪽 여백
+const THUMB_SCROLLBAR_W = 8; // 스크롤바가 차지하는 폭 (globals.css의 3px + 여유)
+// border-box라 패딩과 스크롤바가 모두 width 안에 들어간다. 셋을 다 더해야 썸네일이 안 눌린다.
+const THUMB_COL_W = THUMB_W + THUMB_COL_PAD * 2 + THUMB_SCROLLBAR_W;
 const GALLERY_GAP = 12;
-const GALLERY_PAD_R = 16;    // 썸네일 열이 오른쪽 경계선에 붙어 선택 테두리가 잘리지 않게
-const IMG_AREA_W = 636;      // 이미지 프레임 기준 폭 (에셋 제작 기준과 동일하게 고정)
+const GALLERY_PAD_R = 16;    // 썸네일 열이 오른쪽 경계선에 붙지 않게
+const IMG_AREA_W = 636;      // 이미지 프레임 폭 (에셋 제작 기준)
 const GALLERY_W = MODAL_PAD + IMG_AREA_W + GALLERY_GAP + THUMB_COL_W + GALLERY_PAD_R;
 const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
 
-// 프레임은 3:4로 고정한다. 컷마다 비율을 따라가게 두면 프레임 크기가 바뀌면서
+// 프레임 비율은 고정한다. 컷마다 비율을 따라가게 두면 프레임 크기가 바뀌면서
 // 하단 여백과 썸네일 스크롤바가 컷에 따라 생겼다 사라진다.
-const FRAME_RATIO = 3 / 4;
+// 갤러리에 남는 공간이 없도록 사용 가능한 영역(636 x 904)을 그대로 비율로 쓴다.
+const FRAME_RATIO = IMG_AREA_W / IMG_AREA_H;
 // ADD TO CART 높이 — 이 값만 바꾸면 버튼 크기가 조정된다
 const ADD_TO_CART_H = 240;
 
@@ -265,12 +270,13 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           </div>
 
           {/* 썸네일 세로 목록 — 세로 스크롤만, 가로 스크롤바는 생기지 않게 한다.
-              열 폭을 썸네일보다 넓게 잡아 스크롤바가 썸네일을 가리거나 자르지 않는다. */}
+              좌우 안쪽 여백을 둬서 선택 테두리가 스크롤바나 열 경계에 닿지 않는다. */}
           <div
             className="thumb-scroll"
             style={{
               display: "flex", flexDirection: "column", gap: "8px",
               width: `${THUMB_COL_W}px`,
+              padding: `0 ${THUMB_COL_PAD}px`,
               height: `${frameH}px`,
               /* scroll(=항상 표시) — auto로 두면 선택한 컷의 비율에 따라 열 높이가 바뀌면서
                  스크롤바가 나타났다 사라져 보인다 */
@@ -337,16 +343,17 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           {/* 구분선 */}
           <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "13px" }} />
 
-          {/* 설명 — 영문 2줄(Akkurat) + 한글 2줄(SUIT) */}
-          <div style={{ margin: "0 0 28px" }}>
+          {/* 설명 — 한글(SUIT)이 먼저, 그 아래 영문(Akkurat).
+              줄바꿈은 원문 그대로 (white-space: pre-line) */}
+          <div style={{ margin: "0 0 28px", display: "flex", flexDirection: "column" }}>
             <p style={{
               fontFamily: FONTS.akkurat, fontSize: "13px",
               lineHeight: "1.7", color: "#888",
-              margin: "0 0 10px", whiteSpace: "pre-line",
+              margin: "10px 0 0", whiteSpace: "pre-line",
               /* 전체 대문자는 긴 문단에서 가독성이 떨어져, 원문의 문장 첫 글자 대문자를 그대로 쓴다 */
               letterSpacing: "-0.01em",
+              order: 2,
             }}>
-              {/* 줄바꿈은 원문 그대로 (white-space: pre-line) */}
               {p.desc}
             </p>
             <p style={{
@@ -354,6 +361,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               lineHeight: "1.7", color: "#999",
               margin: 0, whiteSpace: "pre-line",
               letterSpacing: "-0.02em", wordBreak: "keep-all",
+              order: 1,
             }}>
               {DESC_KO[p.desc] ?? ""}
             </p>
