@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import {
   motion, AnimatePresence, animate,
   useMotionValue, useVelocity, useSpring, useTransform, useMotionValueEvent,
@@ -14,7 +14,7 @@ const SIZES = ["XS", "S", "M", "L", "XL"] as const;
 
 // 한글 설명은 DESC_KO에서 영문 설명을 키로 찾으므로, 상수로 묶어 양쪽이 어긋나지 않게 한다.
 const DESC_TUNDRA_EN =
-  "Designed to withstand the harshest winter conditions, the Tundra Fur Jacket delivers exceptional warmth through its voluminous fur texture while maintaining a refined and lightweight silhouette. Blending functionality with sophistication, it redefines cold-weather outerwear with a softer, more contemporary aesthetic. Customizable crochet modules can be added to the sleeves and hood, allowing each wearer to personalize the jacket and create a style that is uniquely their own.";
+  "A statement outerwear piece that pairs exceptional warmth with an effortlessly refined silhouette. Crochet modules can be added to the sleeves and hood, transforming the jacket into a personalized expression of style.";
 
 // ─── 시즌별 상품 데이터 ────────────────────────────────────────────────────────
 const SEASON_PRODUCTS = [
@@ -126,8 +126,6 @@ const IMG_AREA_W = GALLERY_W - MODAL_PAD - GALLERY_GAP - THUMB_COL_W;
 // 프레임은 3:4로 고정한다. 컷마다 비율을 따라가게 두면 프레임 크기가 바뀌면서
 // 하단 여백과 썸네일 스크롤바가 컷에 따라 생겼다 사라진다.
 const FRAME_RATIO = 3 / 4;
-const FRAME_H = Math.min(IMG_AREA_H, IMG_AREA_W / FRAME_RATIO);
-const FRAME_W = FRAME_H * FRAME_RATIO;
 
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
@@ -138,6 +136,33 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
   const [mainImg, setMainImg] = useState(thumbs[0]);
   const [added, setAdded] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+
+  // 갤러리의 실제 높이를 재서 프레임과 썸네일 열 크기를 잡는다.
+  // 상수(모달 1040px 기준)로 고정하면, 화면이 낮아 모달이 maxHeight로 잘릴 때
+  // 썸네일 열이 패널 밖으로 넘쳐 마지막 컷을 고를 수 없게 된다.
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const [galleryH, setGalleryH] = useState(IMG_AREA_H);
+
+  useLayoutEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+    // clientHeight는 패딩을 포함하므로 위/아래 패딩을 빼야 이미지에 쓸 높이가 된다
+    const measure = () => setGalleryH(Math.max(0, el.clientHeight - MODAL_PAD * 2));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // 배경(상품 목록)이 같이 스크롤되지 않도록 모달이 열려 있는 동안 body 스크롤을 잠근다
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const frameH = Math.min(galleryH, IMG_AREA_W / FRAME_RATIO);
+  const frameW = frameH * FRAME_RATIO;
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -191,10 +216,11 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         </button>
 
         {/* ── 왼쪽: 이미지 갤러리 — 큰 이미지가 앞(좌측), 썸네일이 뒤(우측) ── */}
-        <div style={{
+        <div ref={galleryRef} style={{
           flex: `0 0 ${GALLERY_W}px`, display: "flex", gap: `${GALLERY_GAP}px`,
           padding: `${MODAL_PAD}px 0 ${MODAL_PAD}px ${MODAL_PAD}px`,
           alignItems: "flex-start",
+          minHeight: 0,
         }}>
           {/* 메인 이미지 — 계산된 프레임에 딱 맞아 상/하·좌/우 여백이 없다.
               클릭하면 확대해서 볼 수 있다. */}
@@ -203,7 +229,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               onClick={() => setZoomed(true)}
               title="클릭하면 크게 볼 수 있어요"
               style={{
-                width: `${FRAME_W}px`, height: `${FRAME_H}px`,
+                width: `${frameW}px`, height: `${frameH}px`,
                 backgroundColor: "#ffffff",
                 position: "relative",
                 overflow: "hidden",
@@ -235,7 +261,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             style={{
               display: "flex", flexDirection: "column", gap: "8px",
               width: `${THUMB_COL_W}px`,
-              height: `${FRAME_H}px`,
+              height: `${frameH}px`,
               /* scroll(=항상 표시) — auto로 두면 선택한 컷의 비율에 따라 열 높이가 바뀌면서
                  스크롤바가 나타났다 사라져 보인다 */
               overflowY: "scroll", overflowX: "hidden", flexShrink: 0,
@@ -351,13 +377,14 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             ))}
           </div>
 
-          {/* 장바구니 — 남는 공간을 밀어내고 패널 하단 쪽에 배치 */}
+          {/* 장바구니 — 남는 세로 공간을 그대로 흡수해 확장된다.
+              설명이 짧은 상품일수록 버튼이 더 커지고, 빈 여백이 남지 않는다. */}
           <button
             onClick={handleAddToCart}
             disabled={!selectedSize}
             style={{
-              marginTop: "auto",
-              width: "100%", height: "240px",
+              flex: "1 0 auto", minHeight: "240px",
+              width: "100%",
               background: added ? "#F77DA6" : selectedSize ? "#050505" : "#e0e0e0",
               color: selectedSize ? "#fff" : "#aaa",
               border: "none", cursor: selectedSize ? "pointer" : "not-allowed",
