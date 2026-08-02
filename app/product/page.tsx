@@ -91,8 +91,9 @@ const DESC_KO: Record<string, string> = {
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
   [DESC_TUNDRA_EN]:
     "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와\n" +
-    "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며, 소매와 후드에\n" +
-    "뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
+    "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며,\n" +
+    "\n" +
+    "소매와 후드에 뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -136,7 +137,7 @@ const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
 // 갤러리에 남는 공간이 없도록 사용 가능한 영역(636 x 904)을 그대로 비율로 쓴다.
 const FRAME_RATIO = IMG_AREA_W / IMG_AREA_H;
 // ADD TO CART 높이 — 이 값만 바꾸면 버튼 크기가 조정된다
-const ADD_TO_CART_H = 80;
+const ADD_TO_CART_H = 64;
 
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
@@ -327,21 +328,21 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             {p.name}
           </h2>
 
-          {/* 가격 — 아래 간격(14 + 구분선 1 + 13 = 28)을 한글 설명~SIZE 간격과 맞춘다 */}
+          {/* 가격 */}
           <p style={{
             fontFamily: FONTS.condensed, fontWeight: 700,
             fontSize: "18px", color: "#050505",
-            margin: "0 0 14px",
+            margin: "0 0 18px",
           }}>
             {p.price}
           </p>
 
-          {/* 구분선 */}
-          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "13px" }} />
+          {/* 구분선 — 가격과 설명 사이 */}
+          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "18px" }} />
 
           {/* 설명 — 한글(SUIT)이 먼저, 그 아래 영문(Akkurat).
               줄바꿈은 원문 그대로 (white-space: pre-line) */}
-          <div style={{ margin: "0 0 28px", display: "flex", flexDirection: "column" }}>
+          <div style={{ margin: "0 0 18px", display: "flex", flexDirection: "column" }}>
             <p style={{
               fontFamily: FONTS.akkurat, fontSize: "13px",
               lineHeight: "1.7", color: "#888",
@@ -362,6 +363,9 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               {DESC_KO[p.desc] ?? ""}
             </p>
           </div>
+
+          {/* 구분선 — 설명과 사이즈 사이 (가격 위 구분선과 동일) */}
+          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "18px" }} />
 
           {/* 사이즈 선택 */}
           <p style={{
