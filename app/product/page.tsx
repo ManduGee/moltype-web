@@ -12,6 +12,10 @@ import { PATTERNS, COLORS, FONTS } from "@/lib/assets";
 
 const SIZES = ["XS", "S", "M", "L", "XL"] as const;
 
+// 한글 설명은 DESC_KO에서 영문 설명을 키로 찾으므로, 상수로 묶어 양쪽이 어긋나지 않게 한다.
+const DESC_TUNDRA_EN =
+  "Designed to withstand the harshest winter conditions, the Tundra Fur Jacket delivers exceptional warmth through its voluminous fur texture while maintaining a refined and lightweight silhouette. Blending functionality with sophistication, it redefines cold-weather outerwear with a softer, more contemporary aesthetic. Customizable crochet modules can be added to the sleeves and hood, allowing each wearer to personalize the jacket and create a style that is uniquely their own.";
+
 // ─── 시즌별 상품 데이터 ────────────────────────────────────────────────────────
 const SEASON_PRODUCTS = [
   // 0 — Spring
@@ -53,7 +57,7 @@ const SEASON_PRODUCTS = [
   ],
   // 3 — Winter
   [
-    { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: DESC_TUNDRA_EN, image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
     { id: 2, name: "Winter 02", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
     { id: 3, name: "Winter 03", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
     { id: 4, name: "Winter 04", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
@@ -81,6 +85,10 @@ const DESC_KO: Record<string, string> = {
   "A pair of shorts with space left at the seam.": "솔기에 여백을 남긴 쇼츠.\n비어있는 자리가 곧 시작점이 됩니다.",
   "A wearable surface made to be interrupted. Same form, new skin.": "중단되기 위해 만들어진 입는 표면.\n같은 형태, 새로운 스킨.",
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
+  [DESC_TUNDRA_EN]:
+    "극한의 한파 속에서도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와 가벼운 실루엣이 조화를 이루는 아우터입니다.\n" +
+    "보온성을 극대화하면서도 둔탁한 겨울 아우터의 인상을 벗어나, 부드럽고 세련된 감성을 담았습니다.\n" +
+    "또한 소매와 후드에는 다양한 뜨개 모듈을 자유롭게 부착할 수 있어, 계절과 취향에 따라 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -104,11 +112,15 @@ const DETAIL_IMAGES: Record<string, string[]> = {
 
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
-  const thumbs = DETAIL_IMAGES[p.name] ?? [p.image, p.image, p.image, p.image, p.image, p.image];
+  const detailCuts = DETAIL_IMAGES[p.name];
+  const thumbs = detailCuts ?? [p.image, p.image, p.image, p.image, p.image, p.image];
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [mainImg, setMainImg] = useState(thumbs[0]);
   const [added, setAdded] = useState(false);
+  // 상세 컷은 컷마다 비율이 다르다(정면/측면/후면 3:4, 디테일 1:1).
+  // 로드된 이미지의 실제 비율을 그대로 프레임에 적용해 상/하 여백이 생기지 않게 한다.
+  const [imgRatio, setImgRatio] = useState(3 / 4);
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -161,9 +173,14 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         </button>
 
         {/* ── 왼쪽: 이미지 갤러리 ─────────────────────────────── */}
-        <div style={{ flex: "0 0 55%", display: "flex", gap: "10px", padding: "24px" }}>
-          {/* 썸네일 세로 목록 */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "72px" }}>
+        {/* alignItems: flex-start — 썸네일이 많아도 메인 이미지 프레임이 세로로 늘어나지 않게 한다
+            (늘어나면 이미지 위아래에 배경색 여백이 생긴다) */}
+        <div style={{ flex: "0 0 55%", display: "flex", gap: "10px", padding: "24px", alignItems: "flex-start" }}>
+          {/* 썸네일 세로 목록 — 메인 이미지보다 길어지면 스크롤 */}
+          <div style={{
+            display: "flex", flexDirection: "column", gap: "8px", width: "72px",
+            maxHeight: "530px", overflowY: "auto", flexShrink: 0,
+          }}>
             {thumbs.map((src, i) => (
               <div
                 key={i}
@@ -182,13 +199,29 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             ))}
           </div>
 
-          {/* 메인 이미지 — 1.25배 확대 (패딩 제거 + 스케일) */}
+          {/* 메인 이미지 — 상세 컷은 실제 비율에 프레임을 맞춰 여백 없이 꽉 차게,
+              대표 이미지(행거 컷)는 기존처럼 3:4 프레임에 1.12배 확대 */}
           <div style={{
             flex: 1, backgroundColor: p.bg,
-            position: "relative", aspectRatio: "3 / 4",
+            position: "relative",
+            aspectRatio: detailCuts ? String(imgRatio) : "3 / 4",
             overflow: "hidden",
           }}>
-            <Image src={mainImg} alt={p.name} fill style={{ objectFit: "contain", transform: "scale(1.12)" }} />
+            <Image
+              src={mainImg}
+              alt={p.name}
+              fill
+              onLoad={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (img.naturalWidth && img.naturalHeight) {
+                  setImgRatio(img.naturalWidth / img.naturalHeight);
+                }
+              }}
+              style={{
+                objectFit: "contain",
+                transform: detailCuts ? undefined : "scale(1.12)",
+              }}
+            />
           </div>
         </div>
 
@@ -238,7 +271,8 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               margin: "0 0 10px", whiteSpace: "pre-line",
               textTransform: "uppercase", letterSpacing: "-0.01em",
             }}>
-              {p.desc.replace(". ", ".\n")}
+              {/* 문장마다 줄바꿈 — 한글 설명과 줄 구성을 맞춘다 */}
+              {p.desc.replace(/\. /g, ".\n")}
             </p>
             <p style={{
               fontFamily: FONT_KO, fontSize: "12px",
