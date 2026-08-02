@@ -90,9 +90,9 @@ const DESC_KO: Record<string, string> = {
   "A wearable surface made to be interrupted. Same form, new skin.": "중단되기 위해 만들어진 입는 표면.\n같은 형태, 새로운 스킨.",
   "The seam is the question. You decide where it ends.": "솔기는 질문입니다.\n어디서 끝낼지는 당신이 정합니다.",
   [DESC_TUNDRA_EN]:
-    "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와 " +
-    "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며, " +
-    "소매와 후드에 뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
+    "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와\n" +
+    "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며, 소매와 후드에\n" +
+    "뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -117,7 +117,7 @@ const DETAIL_IMAGES: Record<string, string[]> = {
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
 // 패널이 고정 크기라 이미지 프레임 크기를 직접 계산한다. 높이에만 맞추면 1:1 컷이
 // 가로로 넘치고, 폭에만 맞추면 3:4 컷이 세로로 넘치므로 둘 다 만족하는 값을 쓴다.
-const MODAL_W = 1380;
+const MODAL_W = 1440;
 const MODAL_H = 960;
 const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
 const THUMB_W = 72;
@@ -136,7 +136,7 @@ const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
 // 갤러리에 남는 공간이 없도록 사용 가능한 영역(636 x 904)을 그대로 비율로 쓴다.
 const FRAME_RATIO = IMG_AREA_W / IMG_AREA_H;
 // ADD TO CART 높이 — 이 값만 바꾸면 버튼 크기가 조정된다
-const ADD_TO_CART_H = 240;
+const ADD_TO_CART_H = 80;
 
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
@@ -239,7 +239,6 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-start", justifyContent: "flex-start" }}>
             <div
               onClick={() => setZoomed(true)}
-              title="클릭하면 크게 볼 수 있어요"
               style={{
                 width: `${frameW}px`, height: `${frameH}px`,
                 backgroundColor: "#ffffff",
@@ -469,14 +468,15 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               animate={{ scale: 1 }}
               exit={{ scale: 0.94 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              /* 화면을 거의 꽉 채운다. 비율을 고정하지 않아 이미지 원래 비율대로
+                 가능한 한 크게 표시된다. */
               style={{
                 position: "relative",
-                height: "92vh",
-                aspectRatio: String(FRAME_RATIO),
-                maxWidth: "94vw",
+                width: "100vw",
+                height: "100vh",
               }}
             >
-              <Image src={mainImg} alt={p.name} fill sizes="94vw" style={{ objectFit: "contain" }} />
+              <Image src={mainImg} alt={p.name} fill sizes="100vw" style={{ objectFit: "contain" }} />
             </motion.div>
 
             <button
