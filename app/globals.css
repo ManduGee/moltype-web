@@ -68,3 +68,19 @@ body {
   }
 }
 
+
+/* 상품 상세 모달 썸네일 열 — 기본 스크롤바가 두꺼워 얇게 줄인다 */
+.thumb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d5d5d5 transparent;
+}
+.thumb-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.thumb-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thumb-scroll::-webkit-scrollbar-thumb {
+  background: #d5d5d5;
+  border-radius: 3px;
+}

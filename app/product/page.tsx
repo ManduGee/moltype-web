@@ -152,9 +152,11 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff",
-          width: "960px", maxWidth: "90vw",
-          maxHeight: "972px", /* 1080의 90% (zoom 대응 고정 px) */
-          overflowY: "auto",
+          /* 가로형 패널 — 세로 높이를 고정해 이미지가 높이에 맞춰지고,
+             남는 가로 폭을 설명 영역이 넉넉히 쓰도록 한다 */
+          width: "1320px", maxWidth: "92vw",
+          height: "720px", maxHeight: "88vh",
+          overflow: "hidden",
           display: "flex",
           flexDirection: "row",
           position: "relative",
@@ -172,15 +174,44 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           ✕
         </button>
 
-        {/* ── 왼쪽: 이미지 갤러리 ─────────────────────────────── */}
-        {/* alignItems: flex-start — 썸네일이 많아도 메인 이미지 프레임이 세로로 늘어나지 않게 한다
-            (늘어나면 이미지 위아래에 배경색 여백이 생긴다) */}
-        <div style={{ flex: "0 0 55%", display: "flex", gap: "10px", padding: "24px", alignItems: "flex-start" }}>
-          {/* 썸네일 세로 목록 — 메인 이미지보다 길어지면 스크롤 */}
-          <div style={{
-            display: "flex", flexDirection: "column", gap: "8px", width: "72px",
-            maxHeight: "530px", overflowY: "auto", flexShrink: 0,
-          }}>
+        {/* ── 왼쪽: 이미지 갤러리 — 큰 이미지가 앞(좌측), 썸네일이 뒤(우측) ── */}
+        <div style={{ flex: "0 0 62%", display: "flex", gap: "10px", padding: "24px", alignItems: "stretch" }}>
+          {/* 메인 이미지 — 높이를 갤러리에 꽉 채우고 폭은 이미지 비율에서 나오므로
+              3:4 컷과 1:1 컷 모두 프레임에 여백 없이 들어간다 */}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{
+              height: "100%", maxWidth: "100%",
+              backgroundColor: p.bg,
+              position: "relative",
+              aspectRatio: detailCuts ? String(imgRatio) : "3 / 4",
+              overflow: "hidden",
+            }}>
+              <Image
+                src={mainImg}
+                alt={p.name}
+                fill
+                onLoad={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  if (img.naturalWidth && img.naturalHeight) {
+                    setImgRatio(img.naturalWidth / img.naturalHeight);
+                  }
+                }}
+                style={{
+                  objectFit: "contain",
+                  transform: detailCuts ? undefined : "scale(1.12)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 썸네일 세로 목록 — 갤러리 높이를 넘으면 얇은 스크롤바로 스크롤 */}
+          <div
+            className="thumb-scroll"
+            style={{
+              display: "flex", flexDirection: "column", gap: "8px", width: "72px",
+              height: "100%", overflowY: "auto", flexShrink: 0,
+            }}
+          >
             {thumbs.map((src, i) => (
               <div
                 key={i}
@@ -198,39 +229,15 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               </div>
             ))}
           </div>
-
-          {/* 메인 이미지 — 상세 컷은 실제 비율에 프레임을 맞춰 여백 없이 꽉 차게,
-              대표 이미지(행거 컷)는 기존처럼 3:4 프레임에 1.12배 확대 */}
-          <div style={{
-            flex: 1, backgroundColor: p.bg,
-            position: "relative",
-            aspectRatio: detailCuts ? String(imgRatio) : "3 / 4",
-            overflow: "hidden",
-          }}>
-            <Image
-              src={mainImg}
-              alt={p.name}
-              fill
-              onLoad={(e) => {
-                const img = e.target as HTMLImageElement;
-                if (img.naturalWidth && img.naturalHeight) {
-                  setImgRatio(img.naturalWidth / img.naturalHeight);
-                }
-              }}
-              style={{
-                objectFit: "contain",
-                transform: detailCuts ? undefined : "scale(1.12)",
-              }}
-            />
-          </div>
         </div>
 
-        {/* ── 오른쪽: 상품 정보 ────────────────────────────────── */}
+        {/* ── 오른쪽: 상품 정보 — 설명이 길어지면 이 영역만 스크롤 ── */}
         <div style={{
-          flex: "0 0 45%",
+          flex: 1, minWidth: 0,
           padding: "48px 32px 32px",
           display: "flex", flexDirection: "column", gap: "0",
           borderLeft: "1px solid #f0f0f0",
+          overflowY: "auto",
         }}>
           {/* 태그 */}
           <p style={{
@@ -269,7 +276,8 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               fontFamily: FONTS.akkurat, fontSize: "13px",
               lineHeight: "1.7", color: "#888",
               margin: "0 0 10px", whiteSpace: "pre-line",
-              textTransform: "uppercase", letterSpacing: "-0.01em",
+              /* 전체 대문자는 긴 문단에서 가독성이 떨어져, 원문의 문장 첫 글자 대문자를 그대로 쓴다 */
+              letterSpacing: "-0.01em",
             }}>
               {/* 문장마다 줄바꿈 — 한글 설명과 줄 구성을 맞춘다 */}
               {p.desc.replace(/\. /g, ".\n")}
