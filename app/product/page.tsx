@@ -110,6 +110,19 @@ const DETAIL_IMAGES: Record<string, string[]> = {
   ]),
 };
 
+// ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
+// 패널이 고정 크기라 이미지 프레임 크기를 직접 계산한다. 높이에만 맞추면 1:1 컷이
+// 가로로 넘치고, 폭에만 맞추면 3:4 컷이 세로로 넘치므로 둘 다 만족하는 값을 쓴다.
+const MODAL_W = 1380;
+const MODAL_H = 920;
+const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
+const GALLERY_W = 760;       // 이미지 + 썸네일 영역
+const THUMB_W = 72;
+const THUMB_COL_W = 84;      // 썸네일 + 스크롤바 자리 (썸네일이 잘리지 않게)
+const GALLERY_GAP = 12;
+const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
+const IMG_AREA_W = GALLERY_W - MODAL_PAD - GALLERY_GAP - THUMB_COL_W;
+
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
   const detailCuts = DETAIL_IMAGES[p.name];
@@ -121,6 +134,12 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
   // 상세 컷은 컷마다 비율이 다르다(정면/측면/후면 3:4, 디테일 1:1).
   // 로드된 이미지의 실제 비율을 그대로 프레임에 적용해 상/하 여백이 생기지 않게 한다.
   const [imgRatio, setImgRatio] = useState(3 / 4);
+  const [zoomed, setZoomed] = useState(false);
+
+  // 가로·세로 제약을 모두 만족하는 프레임 크기
+  const frameRatio = detailCuts ? imgRatio : 3 / 4;
+  const frameH = Math.min(IMG_AREA_H, IMG_AREA_W / frameRatio);
+  const frameW = frameH * frameRatio;
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -152,10 +171,9 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff",
-          /* 가로형 패널 — 세로 높이를 고정해 이미지가 높이에 맞춰지고,
-             남는 가로 폭을 설명 영역이 넉넉히 쓰도록 한다 */
-          width: "1320px", maxWidth: "92vw",
-          height: "720px", maxHeight: "88vh",
+          /* 가로형 패널 — 높이를 넉넉히 잡아 ADD TO CART까지 스크롤 없이 들어온다 */
+          width: `${MODAL_W}px`, maxWidth: "94vw",
+          height: `${MODAL_H}px`, maxHeight: "94vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "row",
@@ -175,21 +193,31 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         </button>
 
         {/* ── 왼쪽: 이미지 갤러리 — 큰 이미지가 앞(좌측), 썸네일이 뒤(우측) ── */}
-        <div style={{ flex: "0 0 62%", display: "flex", gap: "10px", padding: "24px", alignItems: "stretch" }}>
-          {/* 메인 이미지 — 높이를 갤러리에 꽉 채우고 폭은 이미지 비율에서 나오므로
-              3:4 컷과 1:1 컷 모두 프레임에 여백 없이 들어간다 */}
-          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{
-              height: "100%", maxWidth: "100%",
-              backgroundColor: p.bg,
-              position: "relative",
-              aspectRatio: detailCuts ? String(imgRatio) : "3 / 4",
-              overflow: "hidden",
-            }}>
+        <div style={{
+          flex: `0 0 ${GALLERY_W}px`, display: "flex", gap: `${GALLERY_GAP}px`,
+          padding: `${MODAL_PAD}px 0 ${MODAL_PAD}px ${MODAL_PAD}px`,
+          alignItems: "center",
+        }}>
+          {/* 메인 이미지 — 계산된 프레임에 딱 맞아 상/하·좌/우 여백이 없다.
+              클릭하면 확대해서 볼 수 있다. */}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+            <div
+              onClick={() => setZoomed(true)}
+              title="클릭하면 크게 볼 수 있어요"
+              style={{
+                width: `${frameW}px`, height: `${frameH}px`,
+                backgroundColor: p.bg,
+                position: "relative",
+                overflow: "hidden",
+                cursor: "zoom-in",
+                flexShrink: 0,
+              }}
+            >
               <Image
                 src={mainImg}
                 alt={p.name}
                 fill
+                sizes="640px"
                 onLoad={(e) => {
                   const img = e.target as HTMLImageElement;
                   if (img.naturalWidth && img.naturalHeight) {
@@ -204,12 +232,15 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             </div>
           </div>
 
-          {/* 썸네일 세로 목록 — 갤러리 높이를 넘으면 얇은 스크롤바로 스크롤 */}
+          {/* 썸네일 세로 목록 — 세로 스크롤만, 가로 스크롤바는 생기지 않게 한다.
+              열 폭을 썸네일보다 넓게 잡아 스크롤바가 썸네일을 가리거나 자르지 않는다. */}
           <div
             className="thumb-scroll"
             style={{
-              display: "flex", flexDirection: "column", gap: "8px", width: "72px",
-              height: "100%", overflowY: "auto", flexShrink: 0,
+              display: "flex", flexDirection: "column", gap: "8px",
+              width: `${THUMB_COL_W}px`,
+              height: `${frameH}px`,
+              overflowY: "auto", overflowX: "hidden", flexShrink: 0,
             }}
           >
             {thumbs.map((src, i) => (
@@ -217,7 +248,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                 key={i}
                 onClick={() => setMainImg(src)}
                 style={{
-                  width: "72px", height: "90px",
+                  width: `${THUMB_W}px`, height: "90px",
                   backgroundColor: p.bg,
                   cursor: "pointer",
                   border: mainImg === src && i === thumbs.indexOf(mainImg) ? `1.5px solid ${COLORS.pink}` : "1.5px solid transparent",
@@ -234,9 +265,11 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         {/* ── 오른쪽: 상품 정보 — 설명이 길어지면 이 영역만 스크롤 ── */}
         <div style={{
           flex: 1, minWidth: 0,
-          padding: "48px 32px 32px",
+          padding: `${MODAL_PAD + 12}px ${MODAL_PAD}px ${MODAL_PAD}px 32px`,
           display: "flex", flexDirection: "column", gap: "0",
           borderLeft: "1px solid #f0f0f0",
+          /* 높이를 넉넉히 잡아 평소엔 스크롤바가 뜨지 않는다.
+             설명이 아주 긴 상품에서만 스크롤이 생기고, 내용이 잘리지는 않는다. */
           overflowY: "auto",
         }}>
           {/* 태그 */}
@@ -326,12 +359,12 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             disabled={!selectedSize}
             style={{
               marginTop: "auto",
-              width: "100%", height: "52px",
+              width: "100%", height: "80px",
               background: added ? "#F77DA6" : selectedSize ? "#050505" : "#e0e0e0",
               color: selectedSize ? "#fff" : "#aaa",
               border: "none", cursor: selectedSize ? "pointer" : "not-allowed",
               fontFamily: FONTS.condensed, fontWeight: 700,
-              fontSize: "13px", letterSpacing: "-0.01em",
+              fontSize: "17px", letterSpacing: "-0.01em",
               textTransform: "uppercase",
               transition: "background 0.2s",
               marginBottom: "12px",
@@ -364,6 +397,55 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           </p>
         </div>
       </motion.div>
+
+      {/* 이미지 확대 보기 — 메인 이미지를 클릭하면 열리고, 아무 곳이나 누르면 닫힌다 */}
+      <AnimatePresence>
+        {zoomed && (
+          <motion.div
+            key="zoom"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => { e.stopPropagation(); setZoomed(false); }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 1100,
+              background: "rgba(0,0,0,0.9)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "zoom-out",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.94 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.94 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: "relative",
+                height: "92vh",
+                aspectRatio: String(frameRatio),
+                maxWidth: "94vw",
+              }}
+            >
+              <Image src={mainImg} alt={p.name} fill sizes="94vw" style={{ objectFit: "contain" }} />
+            </motion.div>
+
+            <button
+              aria-label="Close zoom"
+              onClick={(e) => { e.stopPropagation(); setZoomed(false); }}
+              style={{
+                position: "absolute", top: 24, right: 24,
+                width: 44, height: 44, borderRadius: "50%",
+                background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.5)",
+                color: "#fff", fontSize: 18, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

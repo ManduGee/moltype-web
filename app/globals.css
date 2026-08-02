@@ -75,12 +75,15 @@ body {
   scrollbar-color: #d5d5d5 transparent;
 }
 .thumb-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 3px;
 }
 .thumb-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 .thumb-scroll::-webkit-scrollbar-thumb {
-  background: #d5d5d5;
-  border-radius: 3px;
+  background: #dcdcdc;
+  border-radius: 2px;
+}
+.thumb-scroll::-webkit-scrollbar:horizontal {
+  height: 0;
 }
