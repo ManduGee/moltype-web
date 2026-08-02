@@ -123,6 +123,12 @@ const GALLERY_GAP = 12;
 const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
 const IMG_AREA_W = GALLERY_W - MODAL_PAD - GALLERY_GAP - THUMB_COL_W;
 
+// 프레임은 3:4로 고정한다. 컷마다 비율을 따라가게 두면 프레임 크기가 바뀌면서
+// 하단 여백과 썸네일 스크롤바가 컷에 따라 생겼다 사라진다.
+const FRAME_RATIO = 3 / 4;
+const FRAME_H = Math.min(IMG_AREA_H, IMG_AREA_W / FRAME_RATIO);
+const FRAME_W = FRAME_H * FRAME_RATIO;
+
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
   const detailCuts = DETAIL_IMAGES[p.name];
@@ -131,15 +137,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [mainImg, setMainImg] = useState(thumbs[0]);
   const [added, setAdded] = useState(false);
-  // 상세 컷은 컷마다 비율이 다르다(정면/측면/후면 3:4, 디테일 1:1).
-  // 로드된 이미지의 실제 비율을 그대로 프레임에 적용해 상/하 여백이 생기지 않게 한다.
-  const [imgRatio, setImgRatio] = useState(3 / 4);
   const [zoomed, setZoomed] = useState(false);
-
-  // 가로·세로 제약을 모두 만족하는 프레임 크기
-  const frameRatio = detailCuts ? imgRatio : 3 / 4;
-  const frameH = Math.min(IMG_AREA_H, IMG_AREA_W / frameRatio);
-  const frameW = frameH * frameRatio;
 
   const handleAddToCart = () => {
     if (!selectedSize) return;
@@ -205,7 +203,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               onClick={() => setZoomed(true)}
               title="클릭하면 크게 볼 수 있어요"
               style={{
-                width: `${frameW}px`, height: `${frameH}px`,
+                width: `${FRAME_W}px`, height: `${FRAME_H}px`,
                 backgroundColor: "#ffffff",
                 position: "relative",
                 overflow: "hidden",
@@ -218,12 +216,6 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                 alt={p.name}
                 fill
                 sizes="640px"
-                onLoad={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  if (img.naturalWidth && img.naturalHeight) {
-                    setImgRatio(img.naturalWidth / img.naturalHeight);
-                  }
-                }}
                 style={{
                   objectFit: "contain",
                   /* 상단 기준 정렬 — 프레임과 비율이 어긋나도 위쪽은 잘리지 않고
@@ -243,7 +235,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             style={{
               display: "flex", flexDirection: "column", gap: "8px",
               width: `${THUMB_COL_W}px`,
-              height: `${frameH}px`,
+              height: `${FRAME_H}px`,
               /* scroll(=항상 표시) — auto로 두면 선택한 컷의 비율에 따라 열 높이가 바뀌면서
                  스크롤바가 나타났다 사라져 보인다 */
               overflowY: "scroll", overflowX: "hidden", flexShrink: 0,
@@ -429,7 +421,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               style={{
                 position: "relative",
                 height: "92vh",
-                aspectRatio: String(frameRatio),
+                aspectRatio: String(FRAME_RATIO),
                 maxWidth: "94vw",
               }}
             >
