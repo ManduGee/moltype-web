@@ -114,7 +114,7 @@ const DETAIL_IMAGES: Record<string, string[]> = {
 // 패널이 고정 크기라 이미지 프레임 크기를 직접 계산한다. 높이에만 맞추면 1:1 컷이
 // 가로로 넘치고, 폭에만 맞추면 3:4 컷이 세로로 넘치므로 둘 다 만족하는 값을 쓴다.
 const MODAL_W = 1380;
-const MODAL_H = 1040;
+const MODAL_H = 960;
 const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
 const GALLERY_W = 760;       // 이미지 + 썸네일 영역
 const THUMB_W = 72;
@@ -126,6 +126,8 @@ const IMG_AREA_W = GALLERY_W - MODAL_PAD - GALLERY_GAP - THUMB_COL_W;
 // 프레임은 3:4로 고정한다. 컷마다 비율을 따라가게 두면 프레임 크기가 바뀌면서
 // 하단 여백과 썸네일 스크롤바가 컷에 따라 생겼다 사라진다.
 const FRAME_RATIO = 3 / 4;
+// ADD TO CART 높이 — 이 값만 바꾸면 버튼 크기가 조정된다
+const ADD_TO_CART_H = 240;
 
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
@@ -377,14 +379,14 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             ))}
           </div>
 
-          {/* 장바구니 — 남는 세로 공간을 그대로 흡수해 확장된다.
-              설명이 짧은 상품일수록 버튼이 더 커지고, 빈 여백이 남지 않는다. */}
+          {/* 장바구니 — 높이 고정. 남는 공간은 marginTop:auto로 버튼 위에 두어
+              버튼이 패널 하단에 붙는다. */}
           <button
             onClick={handleAddToCart}
             disabled={!selectedSize}
             style={{
-              flex: "1 0 auto", minHeight: "240px",
-              width: "100%",
+              marginTop: "auto",
+              width: "100%", height: `${ADD_TO_CART_H}px`,
               background: added ? "#F77DA6" : selectedSize ? "#050505" : "#e0e0e0",
               color: selectedSize ? "#fff" : "#aaa",
               border: "none", cursor: selectedSize ? "pointer" : "not-allowed",
