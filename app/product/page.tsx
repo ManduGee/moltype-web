@@ -92,7 +92,6 @@ const DESC_KO: Record<string, string> = {
   [DESC_TUNDRA_EN]:
     "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와\n" +
     "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며,\n" +
-    "\n" +
     "소매와 후드에 뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
 };
 
@@ -346,7 +345,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             <p style={{
               fontFamily: FONTS.akkurat, fontSize: "13px",
               lineHeight: "1.7", color: "#888",
-              margin: "10px 0 0", whiteSpace: "pre-line",
+              margin: "18px 0 0", whiteSpace: "pre-line",
               /* 전체 대문자는 긴 문단에서 가독성이 떨어져, 원문의 문장 첫 글자 대문자를 그대로 쓴다 */
               letterSpacing: "-0.01em",
               order: 2,
@@ -472,12 +471,12 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               animate={{ scale: 1 }}
               exit={{ scale: 0.94 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              /* 화면을 거의 꽉 채운다. 비율을 고정하지 않아 이미지 원래 비율대로
-                 가능한 한 크게 표시된다. */
+              /* 오버레이(fixed, inset:0)를 그대로 채운다.
+                 이 페이지는 html에 CSS zoom이 걸려 있어 vw/vh가 배율만큼 줄어들므로,
+                 뷰포트 단위 대신 부모를 채우는 방식으로 크기를 잡는다. */
               style={{
-                position: "relative",
-                width: "100vw",
-                height: "100vh",
+                position: "absolute",
+                inset: 0,
               }}
             >
               <Image src={mainImg} alt={p.name} fill sizes="100vw" style={{ objectFit: "contain" }} />
