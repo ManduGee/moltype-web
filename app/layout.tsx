@@ -19,7 +19,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    /* 아래 zoom-init 스크립트가 하이드레이션 전에 html의 style(zoom, --inv-zoom)을
+       바꾸므로 서버 HTML과 달라진다. 의도된 조작이라 이 요소만 불일치 경고를 끈다. */
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* SUIT은 public/fonts에 포함돼 globals.css에서 @font-face로 등록한다.
             Pretendard는 SUIT이 못 덮는 글리프용 폴백이라 CDN 유지. */}
