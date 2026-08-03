@@ -381,14 +381,17 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
           display: "grid",
           gridTemplateColumns: "2fr 3fr",
           width: "min(960px, 100%)",
-          maxHeight: "90vh",
+          /* Place 필드가 추가되며 폼이 길어졌다. Guests 줄인 폭 대신 세로를 늘려
+             내용이 잘리지 않게 한다. */
+          height: "min(760px, 96vh)",
+          maxHeight: "96vh",
           borderRadius: "12px",
           overflow: "hidden",
           boxShadow: "0 32px 80px rgba(0,0,0,0.35)",
         }}
       >
         {/* Left: image carousel */}
-        <div style={{ position: "relative", minHeight: "500px", overflow: "hidden" }}>
+        <div style={{ position: "relative", minHeight: 0, overflow: "hidden" }}>
           {/* Images */}
           <AnimatePresence>
             <motion.img
@@ -440,11 +443,14 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
 
         </div>
 
-        {/* Right: booking form — Product 상세와 동일하게 우측 상단 X로 닫는다 */}
+        {/* Right: booking form — Product 상세와 동일하게 우측 상단 X로 닫는다.
+            minHeight:0 — 없으면 grid 자식은 내용 크기 밑으로 줄어들지 않아
+            overflowY:auto가 무시되고 모달 전체가 잘려 보인다. */}
         <div style={{
           background: "#ffffff",
           padding: "40px 40px 40px",
           overflowY: "auto",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-start",
