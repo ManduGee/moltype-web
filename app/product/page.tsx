@@ -139,6 +139,68 @@ const FRAME_RATIO = IMG_AREA_W / IMG_AREA_H;
 // ADD TO CART 높이 — 이 값만 바꾸면 버튼 크기가 조정된다
 const ADD_TO_CART_H = 64;
 
+// 상품별 세부 정보 — 값이 있는 항목만 아코디언에 노출된다.
+// TODO: 사이즈 실측/소재 정보는 실제 값으로 교체 필요 (임의로 채우지 않았다)
+const PRODUCT_INFO: Record<string, { sizeFit?: string; material?: string }> = {
+  "Tundra Fur Jacket": {
+    sizeFit: "사이즈 정보 준비 중입니다.",
+    material: "소재 및 관리 정보 준비 중입니다.",
+  },
+};
+
+// 클릭하면 펼쳐지는 세부 정보 목록
+function InfoAccordion({ items }: { items: { title: string; body: React.ReactNode }[] }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(0); // 첫 항목은 펼친 채로 시작
+
+  return (
+    <div style={{ marginTop: "28px" }}>
+      {items.map((item, i) => {
+        const open = openIdx === i;
+        return (
+          <div key={item.title} style={{ borderTop: "1px solid #ececec" }}>
+            <button
+              onClick={() => setOpenIdx(open ? null : i)}
+              aria-expanded={open}
+              style={{
+                width: "100%", padding: "18px 0",
+                background: "none", border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                fontFamily: FONT_KO, fontSize: "13px", fontWeight: 500,
+                letterSpacing: "-0.02em", color: "#333", textAlign: "left",
+              }}
+            >
+              {item.title}
+              {/* +/− — 회전으로 상태를 표시 */}
+              <motion.span
+                animate={{ rotate: open ? 45 : 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ fontSize: "17px", lineHeight: 1, color: "#666", display: "inline-block" }}
+              >
+                +
+              </motion.span>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.div
+                  key="body"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <div style={{ padding: "0 0 20px" }}>{item.body}</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: () => void; onAddToCart: (item: CartItem) => void }) {
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
   const detailCuts = DETAIL_IMAGES[p.name];
@@ -229,15 +291,17 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
         </button>
 
         {/* ── 왼쪽: 이미지 갤러리 — 큰 이미지가 앞(좌측), 썸네일이 뒤(우측) ── */}
+        {/* 폭을 고정하지 않고 프레임 실제 크기를 따라가게 한다. 고정하면 화면이 낮아
+            프레임이 줄었을 때 그만큼이 이미지와 썸네일 사이 빈 공간으로 남는다. */}
         <div ref={galleryRef} style={{
-          flex: `0 0 ${GALLERY_W}px`, display: "flex", gap: `${GALLERY_GAP}px`,
+          flexShrink: 0, display: "flex", gap: `${GALLERY_GAP}px`,
           padding: `${MODAL_PAD}px ${GALLERY_PAD_R}px ${MODAL_PAD}px ${MODAL_PAD}px`,
           alignItems: "flex-start",
           minHeight: 0,
         }}>
           {/* 메인 이미지 — 계산된 프레임에 딱 맞아 상/하·좌/우 여백이 없다.
               클릭하면 확대해서 볼 수 있다. */}
-          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-start", justifyContent: "flex-start" }}>
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "flex-start" }}>
             <div
               onClick={() => setZoomed(true)}
               style={{
@@ -340,33 +404,6 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
           {/* 구분선 — 가격과 설명 사이 */}
           <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "18px" }} />
 
-          {/* 설명 — 한글(SUIT)이 먼저, 그 아래 영문(Akkurat).
-              줄바꿈은 원문 그대로 (white-space: pre-line) */}
-          <div style={{ margin: "0 0 18px", display: "flex", flexDirection: "column" }}>
-            <p style={{
-              fontFamily: FONTS.akkurat, fontSize: "13px",
-              lineHeight: "1.7", color: "#888",
-              margin: "18px 0 0", whiteSpace: "pre-line",
-              /* 전체 대문자는 긴 문단에서 가독성이 떨어져, 원문의 문장 첫 글자 대문자를 그대로 쓴다 */
-              letterSpacing: "-0.01em",
-              order: 2,
-            }}>
-              {p.desc}
-            </p>
-            <p style={{
-              fontFamily: FONT_KO, fontSize: "12px",
-              lineHeight: "1.7", color: "#999",
-              margin: 0, whiteSpace: "pre-line",
-              letterSpacing: "-0.02em", wordBreak: "keep-all",
-              order: 1,
-            }}>
-              {DESC_KO[p.desc] ?? ""}
-            </p>
-          </div>
-
-          {/* 구분선 — 설명과 사이즈 사이 (가격 위 구분선과 동일) */}
-          <div style={{ height: "1px", backgroundColor: "#f0f0f0", marginBottom: "18px" }} />
-
           {/* 사이즈 선택 */}
           <p style={{
             fontFamily: FONTS.condensed, fontWeight: 700, fontSize: "14px",
@@ -403,7 +440,6 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             onMouseEnter={() => setCartHover(true)}
             onMouseLeave={() => setCartHover(false)}
             style={{
-              marginTop: "auto",
               width: "100%", height: `${ADD_TO_CART_H}px`,
               /* 세로 공간이 모자랄 때 flex가 버튼부터 눌러버리므로 축소를 막는다 */
               flexShrink: 0,
@@ -435,18 +471,70 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             </p>
           )}
 
-          {/* 구분선 */}
-          <div style={{ height: "1px", backgroundColor: "#f0f0f0", margin: "24px 0 16px" }} />
-
-          {/* 안내 텍스트 */}
-          <p style={{
-            fontFamily: FONTS.body, fontSize: "10px",
-            color: "#bbb", lineHeight: "1.7", margin: 0,
-            letterSpacing: "-0.02em",
-          }}>
-            All MOLTYPE pieces arrive incomplete — by design.<br />
-            Free shipping on orders over ₩200,000.
-          </p>
+          {/* 세부 정보 — 클릭하면 펼쳐진다. 내용이 있는 항목만 나온다. */}
+          <InfoAccordion
+            items={[
+              {
+                title: "세부 정보",
+                body: (
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <p style={{
+                      fontFamily: FONT_KO, fontSize: "12px",
+                      lineHeight: "1.7", color: "#999",
+                      margin: 0, whiteSpace: "pre-line",
+                      letterSpacing: "-0.02em", wordBreak: "keep-all",
+                    }}>
+                      {DESC_KO[p.desc] ?? ""}
+                    </p>
+                    <p style={{
+                      fontFamily: FONTS.akkurat, fontSize: "13px",
+                      lineHeight: "1.7", color: "#888",
+                      margin: "18px 0 0", whiteSpace: "pre-line",
+                      letterSpacing: "-0.01em",
+                    }}>
+                      {p.desc}
+                    </p>
+                  </div>
+                ),
+              },
+              ...(PRODUCT_INFO[p.name]?.sizeFit ? [{
+                title: "사이즈 및 핏",
+                body: (
+                  <p style={{
+                    fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
+                    color: "#999", margin: 0, whiteSpace: "pre-line",
+                    letterSpacing: "-0.02em", wordBreak: "keep-all",
+                  }}>
+                    {PRODUCT_INFO[p.name].sizeFit}
+                  </p>
+                ),
+              }] : []),
+              ...(PRODUCT_INFO[p.name]?.material ? [{
+                title: "소재 및 관리",
+                body: (
+                  <p style={{
+                    fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
+                    color: "#999", margin: 0, whiteSpace: "pre-line",
+                    letterSpacing: "-0.02em", wordBreak: "keep-all",
+                  }}>
+                    {PRODUCT_INFO[p.name].material}
+                  </p>
+                ),
+              }] : []),
+              {
+                title: "배송 및 반품",
+                body: (
+                  <p style={{
+                    fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
+                    color: "#999", margin: 0, letterSpacing: "-0.02em", wordBreak: "keep-all",
+                  }}>
+                    ₩200,000 이상 구매 시 무료 배송입니다.<br />
+                    All MOLTYPE pieces arrive incomplete — by design.
+                  </p>
+                ),
+              },
+            ]}
+          />
         </div>
       </motion.div>
 
