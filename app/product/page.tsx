@@ -140,13 +140,61 @@ const FRAME_RATIO = IMG_AREA_W / IMG_AREA_H;
 const ADD_TO_CART_H = 64;
 
 // 상품별 세부 정보 — 값이 있는 항목만 아코디언에 노출된다.
-// TODO: 사이즈 실측/소재 정보는 실제 값으로 교체 필요 (임의로 채우지 않았다)
-const PRODUCT_INFO: Record<string, { sizeFit?: string; material?: string }> = {
+type SizeRow = { size: string; length: string; shoulder: string; chest: string; sleeve: string };
+type ProductInfo = { sizeTable?: SizeRow[]; material?: string; care?: string };
+
+const PRODUCT_INFO: Record<string, ProductInfo> = {
   "Tundra Fur Jacket": {
-    sizeFit: "사이즈 정보 준비 중입니다.",
-    material: "소재 및 관리 정보 준비 중입니다.",
+    sizeTable: [
+      { size: "XS", length: "66cm", shoulder: "50cm", chest: "58cm", sleeve: "55cm" },
+      { size: "S",  length: "68cm", shoulder: "52cm", chest: "60cm", sleeve: "56cm" },
+      { size: "M",  length: "70cm", shoulder: "54cm", chest: "62cm", sleeve: "57cm" },
+      { size: "L",  length: "72cm", shoulder: "56cm", chest: "64cm", sleeve: "58cm" },
+      { size: "XL", length: "74cm", shoulder: "58cm", chest: "66cm", sleeve: "59cm" },
+    ],
+    material:
+      "프리미엄 에코 퍼, 핸드메이드 뜨개 패치, 폴리에스터 새틴 안감을 사용하여 " +
+      "보온성과 부드러운 착용감을 제공합니다.",
+    care:
+      "제품의 형태와 소재를 오래 유지하기 위해 드라이클리닝을 권장하며, " +
+      "세탁 전 뜨개 패치를 분리해 주세요. 직사광선을 피해 보관하시기 바랍니다.",
   },
 };
+
+function SizeTable({ rows }: { rows: SizeRow[] }) {
+  const cell: React.CSSProperties = {
+    fontFamily: FONT_KO, fontSize: "12px", letterSpacing: "-0.02em",
+    padding: "9px 4px", textAlign: "center", color: "#999",
+    borderBottom: "1px solid #f4f4f4", whiteSpace: "nowrap",
+  };
+  const head: React.CSSProperties = {
+    ...cell, color: "#666", fontWeight: 600, borderBottom: "1px solid #e6e6e6",
+  };
+
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          {["", "총장", "어깨너비", "가슴단면", "소매길이"].map((h) => (
+            <th key={h} style={head}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.size}>
+            {/* 사이즈명은 좌측 정렬 + 진하게 — 표의 기준 열 */}
+            <td style={{ ...cell, color: "#555", fontWeight: 600, textAlign: "left" }}>{r.size}</td>
+            <td style={cell}>{r.length}</td>
+            <td style={cell}>{r.shoulder}</td>
+            <td style={cell}>{r.chest}</td>
+            <td style={cell}>{r.sleeve}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
 // 클릭하면 펼쳐지는 세부 정보 목록
 function InfoAccordion({ items }: { items: { title: string; body: React.ReactNode }[] }) {
@@ -477,48 +525,49 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               {
                 title: "세부 정보",
                 body: (
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <p style={{
-                      fontFamily: FONT_KO, fontSize: "12px",
-                      lineHeight: "1.7", color: "#999",
-                      margin: 0, whiteSpace: "pre-line",
-                      letterSpacing: "-0.02em", wordBreak: "keep-all",
-                    }}>
-                      {DESC_KO[p.desc] ?? ""}
-                    </p>
-                    <p style={{
-                      fontFamily: FONTS.akkurat, fontSize: "13px",
-                      lineHeight: "1.7", color: "#888",
-                      margin: "18px 0 0", whiteSpace: "pre-line",
-                      letterSpacing: "-0.01em",
-                    }}>
-                      {p.desc}
-                    </p>
-                  </div>
-                ),
-              },
-              ...(PRODUCT_INFO[p.name]?.sizeFit ? [{
-                title: "사이즈 및 핏",
-                body: (
                   <p style={{
-                    fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
-                    color: "#999", margin: 0, whiteSpace: "pre-line",
+                    fontFamily: FONT_KO, fontSize: "12px",
+                    lineHeight: "1.7", color: "#999",
+                    margin: 0, whiteSpace: "pre-line",
                     letterSpacing: "-0.02em", wordBreak: "keep-all",
                   }}>
-                    {PRODUCT_INFO[p.name].sizeFit}
+                    {DESC_KO[p.desc] ?? ""}
                   </p>
                 ),
+              },
+              ...(PRODUCT_INFO[p.name]?.sizeTable ? [{
+                title: "사이즈",
+                body: <SizeTable rows={PRODUCT_INFO[p.name].sizeTable!} />,
               }] : []),
               ...(PRODUCT_INFO[p.name]?.material ? [{
                 title: "소재 및 관리",
                 body: (
-                  <p style={{
-                    fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
-                    color: "#999", margin: 0, whiteSpace: "pre-line",
-                    letterSpacing: "-0.02em", wordBreak: "keep-all",
-                  }}>
-                    {PRODUCT_INFO[p.name].material}
-                  </p>
+                  <div>
+                    <p style={{
+                      fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
+                      color: "#999", margin: 0,
+                      letterSpacing: "-0.02em", wordBreak: "keep-all",
+                    }}>
+                      {PRODUCT_INFO[p.name].material}
+                    </p>
+                    {PRODUCT_INFO[p.name].care && (
+                      <>
+                        <p style={{
+                          fontFamily: FONT_KO, fontSize: "12px", fontWeight: 600,
+                          color: "#666", margin: "18px 0 6px", letterSpacing: "-0.02em",
+                        }}>
+                          관리 방법
+                        </p>
+                        <p style={{
+                          fontFamily: FONT_KO, fontSize: "12px", lineHeight: "1.7",
+                          color: "#999", margin: 0,
+                          letterSpacing: "-0.02em", wordBreak: "keep-all",
+                        }}>
+                          {PRODUCT_INFO[p.name].care}
+                        </p>
+                      </>
+                    )}
+                  </div>
                 ),
               }] : []),
               {

@@ -25,6 +25,44 @@
   font-display: swap;
 }
 
+/* SUIT (한글 본문) — CDN 대신 저장소에 포함된 파일을 쓴다.
+   코드에서 실제로 쓰는 굵기(300~700)만 등록한다. */
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-otf/SUIT-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-otf/SUIT-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-otf/SUIT-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-otf/SUIT-SemiBold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-otf/SUIT-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

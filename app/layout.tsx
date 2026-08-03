@@ -21,13 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* SUIT은 public/fonts에 포함돼 globals.css에서 @font-face로 등록한다.
+            Pretendard는 SUIT이 못 덮는 글리프용 폴백이라 CDN 유지. */}
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css"
         />
       </head>
       <body style={{ backgroundColor: "#ffffff", margin: 0, padding: 0 }}>
