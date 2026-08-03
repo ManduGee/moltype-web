@@ -62,14 +62,14 @@ const SEASON_PRODUCTS = [
   // 3 — Winter
   [
     { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: DESC_TUNDRA_EN, image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 2, name: "Winter 02", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 3, name: "Winter 03", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 4, name: "Winter 04", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 5, name: "Winter 05", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Winter/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
-    { id: 6,  name: "Winter 06", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Winter 07", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Winter 08", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 9,  name: "Winter 09", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Winter/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 2, name: "Tundra Knit", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 3, name: "Tundra Skirt", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 4, name: "Tundra Leg Warmer", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 5, name: "Tundra Boots", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Winter/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 6,  name: "Igloo Knit", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Igloo Jeans", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Igloo Gloves", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 9,  name: "Igloo UGG", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Winter/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
   ],
 ] as const;
 
@@ -117,17 +117,18 @@ const DETAIL_IMAGES: Record<string, string[]> = {
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
 // 패널이 고정 크기라 이미지 프레임 크기를 직접 계산한다. 높이에만 맞추면 1:1 컷이
 // 가로로 넘치고, 폭에만 맞추면 3:4 컷이 세로로 넘치므로 둘 다 만족하는 값을 쓴다.
-const MODAL_W = 1440;
+const MODAL_W = 1560;
 const MODAL_H = 960;
-const MODAL_PAD = 28;        // 패널 좌우 바깥 여백 — 좌/우를 같게 맞춘다
+const MODAL_PAD = 28;        // 패널 바깥 여백 = 이미지 좌측 여백
 const THUMB_W = 72;
 const THUMB_COL_PAD = 10;    // 선택 테두리가 열 경계에 닿지 않도록 하는 안쪽 여백
 const THUMB_SCROLLBAR_W = 8; // 스크롤바가 차지하는 폭 (globals.css의 3px + 여유)
 // border-box라 패딩과 스크롤바가 모두 width 안에 들어간다. 셋을 다 더해야 썸네일이 안 눌린다.
 const THUMB_COL_W = THUMB_W + THUMB_COL_PAD * 2 + THUMB_SCROLLBAR_W;
-const GALLERY_GAP = 12;
+// 이미지 우측 여백 = flex gap + 썸네일 열 안쪽 패딩. 좌측 여백(MODAL_PAD)과 같아지도록 역산한다.
+const GALLERY_GAP = MODAL_PAD - THUMB_COL_PAD;
 const GALLERY_PAD_R = 16;    // 썸네일 열이 오른쪽 경계선에 붙지 않게
-const IMG_AREA_W = 636;      // 이미지 프레임 폭 (에셋 제작 기준)
+const IMG_AREA_W = 740;      // 이미지 프레임 폭 (에셋 제작 기준)
 const GALLERY_W = MODAL_PAD + IMG_AREA_W + GALLERY_GAP + THUMB_COL_W + GALLERY_PAD_R;
 const IMG_AREA_H = MODAL_H - MODAL_PAD * 2;
 
