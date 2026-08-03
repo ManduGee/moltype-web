@@ -444,7 +444,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             letterSpacing: "-0.02em",
           }}>
             All MOLTYPE pieces arrive incomplete — by design.<br />
-            Free shipping on orders over ₩100,000.
+            Free shipping on orders over ₩200,000.
           </p>
         </div>
       </motion.div>
