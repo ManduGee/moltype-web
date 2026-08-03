@@ -253,7 +253,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                 src={mainImg}
                 alt={p.name}
                 fill
-                sizes="640px"
+                sizes={`${IMG_AREA_W}px`}
                 style={{
                   objectFit: "contain",
                   /* 상단 기준 정렬 — 프레임과 비율이 어긋나도 위쪽은 잘리지 않고
