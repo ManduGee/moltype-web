@@ -7,6 +7,15 @@ import { FONTS, COLORS } from "@/lib/assets";
 
 const FONT_KO = "'SUIT','Pretendard',sans-serif";
 
+// 예약 가능한 지점 — flagship-store 페이지의 매장 목록과 동일하게 유지한다
+const PLACES = [
+  "MOLTYPE Flagship Store",
+  "MOLTYPE Gangnam Space",
+  "MOLTYPE Seongsu Space",
+  "MOLTYPE Apgujeong Space",
+  "MOLTYPE Hanam Space",
+] as const;
+
 type Session = {
   name: string;
   subtitle: string;
@@ -300,7 +309,7 @@ function ImageLightbox({ startIndex, onClose }: { startIndex: number; onClose: (
 }
 
 function BookingModal({ session, onClose }: { session: Session; onClose: () => void }) {
-  const [form, setForm] = useState({ name: "", phone: "", guests: "2", date: "", hour: "10", minute: "00", agreed: false });
+  const [form, setForm] = useState({ name: "", phone: "", guests: "2", place: PLACES[0], date: "", hour: "10", minute: "00", agreed: false });
   const [btnActive, setBtnActive] = useState(false);
   const [imgIdx, setImgIdx] = useState(session.startImgIdx);
   const [lightbox, setLightbox] = useState(false);
@@ -397,7 +406,7 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
 
           {/* Gradient + title */}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: "44px", left: "24px", right: "24px", pointerEvents: "none" }}>
+          <div style={{ position: "absolute", bottom: "54px", left: "24px", right: "24px", pointerEvents: "none" }}>
             <p style={{ fontFamily: FONTS.condensed, fontWeight: 700, fontSize: "clamp(22px, 2.8vw, 40px)", letterSpacing: "-0.02em", textTransform: "uppercase", color: "#fff", margin: 0, lineHeight: 1.0 }}>
               {session.name}
             </p>
@@ -429,41 +438,36 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
             display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)",
           }}>›</button>
 
-          {/* Close button */}
-          <button onClick={onClose} style={{
-            position: "absolute", top: "16px", left: "16px",
-            background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%",
-            width: "34px", height: "34px", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)",
-          }}>
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1L13 13M13 1L1 13" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
         </div>
 
-        {/* Right: booking form */}
+        {/* Right: booking form — Product 상세와 동일하게 우측 상단 X로 닫는다 */}
         <div style={{
           background: "#ffffff",
-          padding: "48px 40px",
+          padding: "40px 40px 40px",
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "flex-start",
+          position: "relative",
         }}>
-          {/* Header nav hint */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "32px" }}>
-            <span style={{ fontFamily: FONTS.akkurat, fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#1a1a1a", fontWeight: 700 }}>
-              BOOKING
-            </span>
-          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: "absolute", top: "20px", right: "24px", zIndex: 10,
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: "20px", color: "#333", lineHeight: 1, padding: 0,
+            }}
+          >
+            ✕
+          </button>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "24px" }}>
             <div>
               <label style={labelStyle}>Name</label>
               <input
                 style={inputStyle}
-                placeholder="YEJIN CHOI"
+                placeholder="JAMES"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
@@ -487,6 +491,26 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
                 >
                   {[1,2,3,4,5,6,7,8].map(n => (
                     <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <svg
+                  style={{ position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+                  width="12" height="7" viewBox="0 0 12 7" fill="none"
+                >
+                  <path d="M1 1L6 6L11 1" stroke="#1a1a1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Place</label>
+              <div style={{ position: "relative" }}>
+                <select
+                  style={{ ...inputStyle, appearance: "none", paddingRight: "40px", cursor: "pointer" }}
+                  value={form.place}
+                  onChange={(e) => setForm({ ...form, place: e.target.value as typeof form.place })}
+                >
+                  {PLACES.map((pl) => (
+                    <option key={pl} value={pl}>{pl}</option>
                   ))}
                 </select>
                 <svg
@@ -895,9 +919,10 @@ export default function WorkshopPage() {
             {SESSIONS.map((s, i) => (
               <div
                 key={s.name}
+                /* 카드로 스크롤하지 않고 바로 예약창을 연다 */
                 onClick={() => {
                   setCirclePage(i);
-                  document.getElementById(`session-card-${i}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setActiveSession(s);
                 }}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center",
