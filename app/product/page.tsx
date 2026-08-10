@@ -70,7 +70,6 @@ const SEASON_PRODUCTS = [
     { id: 6,  name: "Igloo Knit", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
     { id: 7,  name: "Igloo Jeans", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
     { id: 8,  name: "Igloo Gloves", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 9,  name: "Igloo UGG", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Winter/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
   ],
 ] as const;
 
