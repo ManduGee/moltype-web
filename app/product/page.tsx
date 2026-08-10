@@ -24,16 +24,16 @@ const DESC_TUNDRA_EN =
 const SEASON_PRODUCTS = [
   // 0 — Spring
   [
-    { id: 1,  name: "Spring 01", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Spring/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 2,  name: "Spring 02", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 3,  name: "Spring 03", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 4,  name: "Spring 04", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 5,  name: "Spring 05", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 6,  name: "Spring 06", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Spring/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Spring 07", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Spring 08", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 112,000" },
-    { id: 9,  name: "Spring 09", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 158,000" },
-    { id: 10, name: "Spring 10", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_10.png", bg: "#F8FDF9", price: "₩ 142,000" },
+    { id: 1,  name: "Blooming Garden Dress", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Spring/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 2,  name: "Blooming Garden Leg Warmer", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 3,  name: "Blooming Garden Heels", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 4,  name: "Bloom Tailored Jacket", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 5,  name: "Bloom Tailored Pants", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 6,  name: "Bloom Tailored Bag", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Spring/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Bloom Tailored Heels", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Soft Reverie Top", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 112,000" },
+    { id: 9,  name: "Soft Reverie Bottom", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 158,000" },
+    { id: 10, name: "Soft Reverie Slippers", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_10.png", bg: "#F8FDF9", price: "₩ 142,000" },
   ],
   // 1 — Summer
   [
