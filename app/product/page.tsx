@@ -168,22 +168,28 @@ const ADD_TO_CART_H = 64;
 type SizeRow = { size: string; length: string; shoulder: string; chest: string; sleeve: string };
 type ProductInfo = { sizeTable?: SizeRow[]; material?: string; care?: string };
 
+// 상품마다 실측치가 다르므로, 아직 값을 안 넣은 상품은 이 기본값(Tundra Fur Jacket
+// 기준)으로 채운다. 탭 자체(세부 정보/사이즈/소재 및 관리/배송 및 반품)는 모든 상품에
+// 동일하게 노출되고, 내용만 상품별로 나중에 채워 넣으면 된다.
+const DEFAULT_INFO: ProductInfo = {
+  sizeTable: [
+    { size: "XS", length: "66cm", shoulder: "50cm", chest: "58cm", sleeve: "55cm" },
+    { size: "S",  length: "68cm", shoulder: "52cm", chest: "60cm", sleeve: "56cm" },
+    { size: "M",  length: "70cm", shoulder: "54cm", chest: "62cm", sleeve: "57cm" },
+    { size: "L",  length: "72cm", shoulder: "56cm", chest: "64cm", sleeve: "58cm" },
+    { size: "XL", length: "74cm", shoulder: "58cm", chest: "66cm", sleeve: "59cm" },
+  ],
+  material:
+    "프리미엄 에코 퍼, 핸드메이드 뜨개 패치, 폴리에스터 새틴 안감을 사용하여 " +
+    "보온성과 부드러운 착용감을 제공합니다.",
+  care:
+    "제품의 형태와 소재를 오래 유지하기 위해 드라이클리닝을 권장하며, " +
+    "세탁 전 뜨개 패치를 분리해 주세요. 직사광선을 피해 보관하시기 바랍니다.",
+};
+
+// 상품별로 값을 채워 넣을 곳. 아직은 비어 있고, 전부 DEFAULT_INFO를 그대로 쓴다.
 const PRODUCT_INFO: Record<string, ProductInfo> = {
-  "Tundra Fur Jacket": {
-    sizeTable: [
-      { size: "XS", length: "66cm", shoulder: "50cm", chest: "58cm", sleeve: "55cm" },
-      { size: "S",  length: "68cm", shoulder: "52cm", chest: "60cm", sleeve: "56cm" },
-      { size: "M",  length: "70cm", shoulder: "54cm", chest: "62cm", sleeve: "57cm" },
-      { size: "L",  length: "72cm", shoulder: "56cm", chest: "64cm", sleeve: "58cm" },
-      { size: "XL", length: "74cm", shoulder: "58cm", chest: "66cm", sleeve: "59cm" },
-    ],
-    material:
-      "프리미엄 에코 퍼, 핸드메이드 뜨개 패치, 폴리에스터 새틴 안감을 사용하여 " +
-      "보온성과 부드러운 착용감을 제공합니다.",
-    care:
-      "제품의 형태와 소재를 오래 유지하기 위해 드라이클리닝을 권장하며, " +
-      "세탁 전 뜨개 패치를 분리해 주세요. 직사광선을 피해 보관하시기 바랍니다.",
-  },
+  "Tundra Fur Jacket": DEFAULT_INFO,
 };
 
 function SizeTable({ rows }: { rows: SizeRow[] }) {
@@ -544,7 +550,8 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             </p>
           )}
 
-          {/* 세부 정보 — 클릭하면 펼쳐진다. 내용이 있는 항목만 나온다. */}
+          {/* 세부 정보 — 클릭하면 펼쳐진다. 탭 구성은 모든 상품 동일(세부 정보/사이즈/
+              소재 및 관리/배송 및 반품), 값을 안 채운 상품은 DEFAULT_INFO로 채운다. */}
           <InfoAccordion
             items={[
               {
@@ -560,11 +567,11 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                   </p>
                 ),
               },
-              ...(PRODUCT_INFO[p.name]?.sizeTable ? [{
+              {
                 title: "사이즈",
-                body: <SizeTable rows={PRODUCT_INFO[p.name].sizeTable!} />,
-              }] : []),
-              ...(PRODUCT_INFO[p.name]?.material ? [{
+                body: <SizeTable rows={(PRODUCT_INFO[p.name] ?? DEFAULT_INFO).sizeTable!} />,
+              },
+              {
                 title: "소재 및 관리",
                 body: (
                   <div>
@@ -573,9 +580,9 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                       color: "#999", margin: 0,
                       letterSpacing: "-0.02em", wordBreak: "keep-all",
                     }}>
-                      {PRODUCT_INFO[p.name].material}
+                      {(PRODUCT_INFO[p.name] ?? DEFAULT_INFO).material}
                     </p>
-                    {PRODUCT_INFO[p.name].care && (
+                    {(PRODUCT_INFO[p.name] ?? DEFAULT_INFO).care && (
                       <>
                         <p style={{
                           fontFamily: FONT_KO, fontSize: "12px", fontWeight: 600,
@@ -588,13 +595,13 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
                           color: "#999", margin: 0,
                           letterSpacing: "-0.02em", wordBreak: "keep-all",
                         }}>
-                          {PRODUCT_INFO[p.name].care}
+                          {(PRODUCT_INFO[p.name] ?? DEFAULT_INFO).care}
                         </p>
                       </>
                     )}
                   </div>
                 ),
-              }] : []),
+              },
               {
                 title: "배송 및 반품",
                 body: (
