@@ -96,22 +96,47 @@ const DESC_KO: Record<string, string> = {
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
-// 폴더명에 공백이 있어 URL 인코딩이 필요하다.
-const detailCut = (season: string, product: string, files: string[]) =>
-  files.map((f) => `/Product_Detail_Cut/${season}/${encodeURIComponent(product)}/${f}`);
+// 폴더명에 공백이 있어 세그먼트별로 URL 인코딩한다.
+const detailCut = (...segments: string[]) => {
+  const files = segments.pop()!.split(",");
+  const dir = segments.map(encodeURIComponent).join("/");
+  return files.map((f) => `/Product_Detail_Cut/${dir}/${f}`);
+};
+
+// Front → Side_01 → Side_02 → Back → Product Detail 01~05(가변)
+const STD_ORDER = ["Front.png", "Side_01.png", "Side_02.png", "Back.png"];
+const withDetails = (season: string, family: string, variant: string, detailCount: number) =>
+  detailCut(season, family, variant, [
+    ...STD_ORDER,
+    ...Array.from({ length: detailCount }, (_, i) => `Product_Detail_0${i + 1}.png`),
+  ].join(","));
 
 const DETAIL_IMAGES: Record<string, string[]> = {
-  // Front → Side → Back → Product Detail 01~04
+  // Tundra Fur Jacket만 하위 variant 폴더 없이 시즌 바로 아래 있다.
   "Tundra Fur Jacket": detailCut("Winter", "Tundra Fur Jacket", [
-    "Front.png",
-    "Side_01.png",
-    "Side_02.png",
-    "Back.png",
-    "Product_Detail_01.png",
-    "Product_Detail_02.png",
-    "Product_Detail_03.png",
-    "Product_Detail_04.png",
-  ]),
+    ...STD_ORDER,
+    "Product_Detail_01.png", "Product_Detail_02.png", "Product_Detail_03.png", "Product_Detail_04.png",
+  ].join(",")),
+
+  // Denim Mirage 패밀리 — Pants(Denim Mirage 본체) / Top(Mirage Top) / Shoes(Mirage Boots)
+  "Denim Mirage":  withDetails("Summer", "Denim Mirage", "Pants", 5),
+  "Mirage Top":    withDetails("Summer", "Denim Mirage", "Top", 5),
+  "Mirage Boots":  withDetails("Summer", "Denim Mirage", "Shoes", 5),
+
+  // Ribbon Doll 패밀리 — 폴더명과 1:1 일치
+  "Ribbon Doll Knit":  withDetails("Summer", "Ribbon Doll", "Top", 5),
+  "Ribbon Doll Skirt": withDetails("Summer", "Ribbon Doll", "Skirt", 4), // 이 컷만 Product Detail 4장뿐
+  "Ribbon Doll Socks": withDetails("Summer", "Ribbon Doll", "Socks", 5),
+  "Ribbon Doll Shoes": withDetails("Summer", "Ribbon Doll", "Shoes", 5),
+
+  // Summer Bloom Veil 패밀리 — Top(Bloom Veil) / Scrarf(Bloom Scarf). Shoes 폴더는 대응 상품 없어 미사용.
+  "Bloom Veil":  withDetails("Summer", "Summer Bloom Veil", "Top", 5),
+  "Bloom Scarf": withDetails("Summer", "Summer Bloom Veil", "Scrarf", 5),
+
+  // Frozen Bloom 패밀리
+  "Frozen Bloom Dress":      withDetails("Winter", "Frozen Bloom", "Dress", 5),
+  "Frozen Bloom Leg Warmer": withDetails("Winter", "Frozen Bloom", "Socks", 5),
+  "Frozen Bloom Boots":      withDetails("Winter", "Frozen Bloom", "Boots", 5),
 };
 
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
