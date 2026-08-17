@@ -40,9 +40,10 @@ const SEASON_PRODUCTS = [
     { id: 1,  name: "Mirage Top", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Summer/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
     { id: 2,  name: "Denim Mirage", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Summer/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
     { id: 3,  name: "Mirage Boots", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Summer/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 4,  name: "Mirage Glasses", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Summer/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 5,  name: "Bloom Veil", tag: "SUMMER / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Summer/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 6,  name: "Bloom Scarf", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Summer/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 4,  name: "Bloom Veil", tag: "SUMMER / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Summer/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 5,  name: "Bloom Scarf", tag: "SUMMER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Summer/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    // 04번 에셋 교체분 — 꽃 장식 샌들이라 Bloom 패밀리로 옮기고 05, 06 뒤에 배치했다.
+    { id: 6,  name: "Bloom Shoes", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Summer/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
     { id: 7,  name: "Ribbon Doll Knit", tag: "SUMMER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Summer/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
     { id: 8,  name: "Ribbon Doll Skirt", tag: "SUMMER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Summer/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
     { id: 9,  name: "Ribbon Doll Socks", tag: "SUMMER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Summer/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 168,000" },
@@ -129,9 +130,10 @@ const DETAIL_IMAGES: Record<string, string[]> = {
   "Ribbon Doll Socks": withDetails("Summer", "Ribbon Doll", "Socks", 5),
   "Ribbon Doll Shoes": withDetails("Summer", "Ribbon Doll", "Shoes", 5),
 
-  // Summer Bloom Veil 패밀리 — Top(Bloom Veil) / Scrarf(Bloom Scarf). Shoes 폴더는 대응 상품 없어 미사용.
+  // Summer Bloom Veil 패밀리 — Top(Bloom Veil) / Scrarf(Bloom Scarf) / Shoes(Bloom Shoes)
   "Bloom Veil":  withDetails("Summer", "Summer Bloom Veil", "Top", 5),
   "Bloom Scarf": withDetails("Summer", "Summer Bloom Veil", "Scrarf", 5),
+  "Bloom Shoes": withDetails("Summer", "Summer Bloom Veil", "Shoes", 5),
 
   // Frozen Bloom 패밀리
   "Frozen Bloom Dress":      withDetails("Winter", "Frozen Bloom", "Dress", 5),

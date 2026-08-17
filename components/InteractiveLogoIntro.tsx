@@ -880,7 +880,10 @@ export default function InteractiveLogoIntro() {
       )}
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div style={{ position: "relative", zIndex: 200, cursor: "auto" }}>
+      {/* FlashIntro(z-index 10000)가 이 컴포넌트와 같은 루트 스태킹 컨텍스트에서
+          겹치므로, 인트로 모션이 재생되는 동안에도 헤더가 가려지지 않도록
+          그보다 높은 z-index를 준다. */}
+      <div style={{ position: "relative", zIndex: 10050, cursor: "auto" }}>
         <Header />
       </div>
 

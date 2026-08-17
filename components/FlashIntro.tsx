@@ -12,9 +12,12 @@ type Phase = "voice" | "main" | "done";
 const SHRINK_WINDOW = 1.0; // 영상 종료 전 이 구간(초) 동안 DRAW TO KNIT 크기(72%)로 축소
 const SHRINK_TO = 0.72;    // computeLogoRect의 w = vw * 0.72 와 동일
 const STALL_LIMIT = 6;     // 500ms × 6 = 3초 정지 시 다음 단계로 강제 진행
+const HEADER_H = 80;       // Header.tsx와 동일 — 음소거 버튼이 헤더 아래에 오도록
 
 export default function FlashIntro({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<Phase>("voice");
+  // 실제로 소리가 나는지(정책상 강제 음소거된 경우도 반영) — 버튼 아이콘의 기준
+  const [soundOn, setSoundOn] = useState(true);
   const doneRef = useRef(false);
   const voiceRef = useRef<HTMLVideoElement>(null);
   const mainRef = useRef<HTMLVideoElement>(null);
@@ -72,6 +75,21 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [phase]);
 
+  // 단계가 바뀌면(보이스 → 메인) 방금 전 소리 on/off 선택을 새로 시작하는 영상에도 그대로 적용한다
+  useEffect(() => {
+    const v = activeRef.current;
+    if (v) v.muted = !soundOn;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 버튼 클릭이 인트로 스킵(finish)으로 번지지 않게
+    const next = !soundOn;
+    setSoundOn(next);
+    const v = activeRef.current;
+    if (v) v.muted = !next;
+  };
+
   return (
     <motion.div
       onClick={finish}
@@ -95,10 +113,11 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           onError={() => setPhase("main")}
           onLoadedData={(e) => {
             const v = e.currentTarget;
-            v.muted = false;
+            v.muted = !soundOn;
             v.play().catch(() => {
-              // 언뮤트 재생이 막히면(자동재생 정책) 음소거로라도 재생한다
+              // 언뮤트 재생이 막히면(자동재생 정책) 음소거로라도 재생하고, 버튼 표시도 맞춘다
               v.muted = true;
+              setSoundOn(false);
               v.play().catch(() => setPhase("main"));
             });
           }}
@@ -116,7 +135,7 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           key="main-interaction"
           src="/Main_Interaction.mp4"
           autoPlay
-          muted
+          muted={!soundOn}
           playsInline
           onEnded={finish}
           onError={finish}
@@ -131,11 +150,44 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
         />
       )}
 
+      {/* 음소거 토글 — 화면 우상단, 헤더 아래 */}
+      {phase !== "done" && (
+        <button
+          onClick={toggleSound}
+          aria-label={soundOn ? "Mute" : "Unmute"}
+          style={{
+            position: "absolute", top: HEADER_H + 20, right: 24, zIndex: 1,
+            width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", backdropFilter: "blur(4px)",
+          }}
+        >
+          <SoundIcon on={soundOn} />
+        </button>
+      )}
+
       {/* 클릭 유도 힌트 — 손가락 탭 애니메이션 + CLICK! 텍스트. 화면 중앙 하단. */}
       <AnimatePresence>
         {phase !== "done" && <TapHint />}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+function SoundIcon({ on }: { on: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="#fff" stroke="none" />
+      {on ? (
+        <>
+          <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M19 6a9 9 0 0 1 0 12" />
+        </>
+      ) : (
+        <path d="M17 9l5 6M22 9l-5 6" />
+      )}
+    </svg>
   );
 }
 
