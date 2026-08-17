@@ -74,9 +74,9 @@ const SEASON_PRODUCTS = [
   [
     { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: DESC_TUNDRA_EN, image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
     { id: 2, name: "Tundra Knit", tag: "WINTER / 2026", desc: DESC_TUNDRA_KNIT_EN, image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 3, name: "Tundra Skirt", tag: "WINTER / 2026", desc: DESC_TUNDRA_SKIRT_EN, image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 3, name: "Tundra Layered Skirt", tag: "WINTER / 2026", desc: DESC_TUNDRA_SKIRT_EN, image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
     // 04(Tundra Leg Warmer)는 제외. 05는 새 에셋(.jpg)으로 교체.
-    { id: 4, name: "Tundra Boots", tag: "WINTER / 2026", desc: DESC_TUNDRA_BOOTS_EN, image: "/assets/Winter/Website_Product_Asset_05.jpg", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 4, name: "Tundra Boots", tag: "WINTER / 2026", desc: DESC_TUNDRA_BOOTS_EN, image: "/assets/Winter/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
     { id: 5,  name: "Frozen Bloom Dress", tag: "WINTER / 2026", desc: DESC_FROZEN_DRESS_EN, image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
     { id: 6,  name: "Frozen Bloom Leg Warmer", tag: "WINTER / 2026", desc: DESC_FROZEN_LEGWARMER_EN,   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
     { id: 7,  name: "Frozen Bloom Boots", tag: "WINTER / 2026", desc: DESC_FROZEN_BOOTS_EN,                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
@@ -177,7 +177,7 @@ const DETAIL_IMAGES: Record<string, string[]> = {
   // Tundra 패밀리(2차) — 폴더명이 "Tundra " (끝에 공백 포함). 컷은 jpg로 받았다.
   "Tundra Knit":  withDetails("Winter", "Tundra ", "Knit", 5, "jpg"),
   "Tundra Boots": withDetails("Winter", "Tundra ", "Shoes", 5, "jpg"),
-  "Tundra Skirt": withDetails("Winter", "Tundra ", "Skirt", 4, "jpg"), // 이 컷만 Product Detail 4장뿐
+  "Tundra Layered Skirt": withDetails("Winter", "Tundra ", "Skirt", 4, "jpg"), // 이 컷만 Product Detail 4장뿐
 };
 
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
