@@ -20,6 +20,15 @@ const DESC_TUNDRA_EN =
   "Crochet patches can be added to the sleeves and hood,\n" +
   "transforming the jacket into a personalized expression of style.";
 
+// 아래 desc 상수들은 실제로 화면에 표시되지 않고 DESC_KO 조회용 키로만 쓰인다
+// (세부 정보 탭은 한글만 노출한다).
+const DESC_TUNDRA_KNIT_EN = "Tundra Knit — soft knit with customizable crochet patches.";
+const DESC_TUNDRA_BOOTS_EN = "Tundra Boots — fur-lined boots with customizable crochet patches.";
+const DESC_TUNDRA_SKIRT_EN = "Tundra Layered Skirt — lace and knit layers with crochet patch points.";
+const DESC_FROZEN_DRESS_EN = "Frozen Bloom Dress — slim knit silhouette with crocheted floral detail.";
+const DESC_FROZEN_LEGWARMER_EN = "Frozen Bloom Leg Warmers — crocheted texture reminiscent of ice crystals.";
+const DESC_FROZEN_BOOTS_EN = "Frozen Bloom Boots — minimal silhouette paired with the leg warmers.";
+
 // ─── 시즌별 상품 데이터 ────────────────────────────────────────────────────────
 const SEASON_PRODUCTS = [
   // 0 — Spring
@@ -64,13 +73,13 @@ const SEASON_PRODUCTS = [
   // 3 — Winter
   [
     { id: 1, name: "Tundra Fur Jacket", tag: "WINTER / 2026", desc: DESC_TUNDRA_EN, image: "/assets/Winter/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 2, name: "Tundra Knit", tag: "WINTER / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 3, name: "Tundra Skirt", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 4, name: "Tundra Leg Warmer", tag: "WINTER / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Winter/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 5, name: "Tundra Boots", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Winter/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
-    { id: 6,  name: "Frozen Bloom Dress", tag: "WINTER / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Frozen Bloom Leg Warmer", tag: "WINTER / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Frozen Bloom Boots", tag: "WINTER / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 2, name: "Tundra Knit", tag: "WINTER / 2026", desc: DESC_TUNDRA_KNIT_EN, image: "/assets/Winter/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 3, name: "Tundra Skirt", tag: "WINTER / 2026", desc: DESC_TUNDRA_SKIRT_EN, image: "/assets/Winter/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    // 04(Tundra Leg Warmer)는 제외. 05는 새 에셋(.jpg)으로 교체.
+    { id: 4, name: "Tundra Boots", tag: "WINTER / 2026", desc: DESC_TUNDRA_BOOTS_EN, image: "/assets/Winter/Website_Product_Asset_05.jpg", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 5,  name: "Frozen Bloom Dress", tag: "WINTER / 2026", desc: DESC_FROZEN_DRESS_EN, image: "/assets/Winter/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 6,  name: "Frozen Bloom Leg Warmer", tag: "WINTER / 2026", desc: DESC_FROZEN_LEGWARMER_EN,   image: "/assets/Winter/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 7,  name: "Frozen Bloom Boots", tag: "WINTER / 2026", desc: DESC_FROZEN_BOOTS_EN,                       image: "/assets/Winter/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 108,000" },
   ],
 ] as const;
 
@@ -94,6 +103,29 @@ const DESC_KO: Record<string, string> = {
     "극한의 한파에도 따뜻함을 유지하도록 설계된 Tundra Fur Jacket은 풍성한 퍼 텍스처와\n" +
     "가벼운 실루엣을 갖춘 아우터입니다. 뛰어난 보온성과 세련된 감성을 동시에 담았으며,\n" +
     "소매와 후드에 뜨개 패치를 자유롭게 부착해 자신만의 스타일로 커스터마이징할 수 있습니다.",
+
+  [DESC_TUNDRA_KNIT_EN]:
+    "부드러운 촉감의 니트 소재와 여유로운 실루엣이 돋보이는 Tundra Knit은 겨울철 편안한 착용감을 " +
+    "제공합니다. 다양한 뜨개 패치를 자유롭게 부착할 수 있어, 기본적인 니트웨어를 자신만의 개성이 " +
+    "담긴 아이템으로 완성할 수 있습니다.",
+  [DESC_TUNDRA_BOOTS_EN]:
+    "추운 계절에도 따뜻함을 유지할 수 있도록 설계된 Tundra Boots는 부드러운 퍼 소재와 안정적인 " +
+    "착화감을 갖춘 아이템입니다. 부츠 곳곳에 뜨개 패치를 더해 자신만의 방식으로 커스터마이징할 수 있습니다.",
+  [DESC_TUNDRA_SKIRT_EN]:
+    "레이스와 니트 텍스처가 층층이 쌓인 Tundra Layered Skirt는 풍부한 볼륨감과 유연한 움직임을 " +
+    "연출합니다. 뜨개 패치를 활용해 원하는 위치에 포인트를 더하며 자신만의 스타일을 표현할 수 있습니다.",
+  [DESC_FROZEN_DRESS_EN]:
+    "차가운 겨울 풍경 속에서 피어난 꽃을 모티브로 한 Frozen Bloom Dress는 슬림한 니트 실루엣과 " +
+    "섬세한 뜨개 디테일이 조화를 이루는 원피스입니다. 꽃잎을 연상시키는 볼륨감 있는 소매와 유려한 " +
+    "드레이프 라인이 부드럽고 우아한 분위기를 완성합니다.",
+  [DESC_FROZEN_LEGWARMER_EN]:
+    "섬세한 뜨개 패턴으로 제작된 Frozen Bloom Leg Warmers는 얼음 결정이 피어난 듯한 텍스처가 " +
+    "특징입니다. 가볍고 유연한 소재로 제작되어 스타일링에 포인트를 더하며, 원피스와 함께 하나의 " +
+    "완성된 룩을 연출합니다.",
+  [DESC_FROZEN_BOOTS_EN]:
+    "겨울철 실용성과 감각적인 디자인을 동시에 담은 Frozen Bloom Boots입니다. 미니멀한 실루엣과 " +
+    "안정적인 착화감이 특징이며, 뜨개 레그워머와 조화를 이루어 Frozen Bloom 컬렉션의 우아한 무드를 " +
+    "완성합니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -106,10 +138,12 @@ const detailCut = (...segments: string[]) => {
 
 // Front → Side_01 → Side_02 → Back → Product Detail 01~05(가변)
 const STD_ORDER = ["Front.png", "Side_01.png", "Side_02.png", "Back.png"];
-const withDetails = (season: string, family: string, variant: string, detailCount: number) =>
+const stdOrder = (ext: string) => STD_ORDER.map((f) => f.replace(".png", `.${ext}`));
+// ext — 새로 받은 컷은 jpg로 오는 경우가 있어 확장자를 선택할 수 있게 한다 (기본 png)
+const withDetails = (season: string, family: string, variant: string, detailCount: number, ext: string = "png") =>
   detailCut(season, family, variant, [
-    ...STD_ORDER,
-    ...Array.from({ length: detailCount }, (_, i) => `Product_Detail_0${i + 1}.png`),
+    ...stdOrder(ext),
+    ...Array.from({ length: detailCount }, (_, i) => `Product_Detail_0${i + 1}.${ext}`),
   ].join(","));
 
 const DETAIL_IMAGES: Record<string, string[]> = {
@@ -139,6 +173,11 @@ const DETAIL_IMAGES: Record<string, string[]> = {
   "Frozen Bloom Dress":      withDetails("Winter", "Frozen Bloom", "Dress", 5),
   "Frozen Bloom Leg Warmer": withDetails("Winter", "Frozen Bloom", "Socks", 5),
   "Frozen Bloom Boots":      withDetails("Winter", "Frozen Bloom", "Boots", 5),
+
+  // Tundra 패밀리(2차) — 폴더명이 "Tundra " (끝에 공백 포함). 컷은 jpg로 받았다.
+  "Tundra Knit":  withDetails("Winter", "Tundra ", "Knit", 5, "jpg"),
+  "Tundra Boots": withDetails("Winter", "Tundra ", "Shoes", 5, "jpg"),
+  "Tundra Skirt": withDetails("Winter", "Tundra ", "Skirt", 4, "jpg"), // 이 컷만 Product Detail 4장뿐
 };
 
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
@@ -192,6 +231,35 @@ const DEFAULT_INFO: ProductInfo = {
 // 상품별로 값을 채워 넣을 곳. 아직은 비어 있고, 전부 DEFAULT_INFO를 그대로 쓴다.
 const PRODUCT_INFO: Record<string, ProductInfo> = {
   "Tundra Fur Jacket": DEFAULT_INFO,
+  // 사이즈표는 아직 실측치가 없어 DEFAULT_INFO(Tundra Fur Jacket 기준)를 그대로 쓴다.
+  "Frozen Bloom Boots": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "프리미엄 스웨이드 텍스처와 부드러운 내피 소재를 사용하여 보온성과 편안한 착화감을 " +
+      "제공합니다. 다양한 스타일과 조화롭게 어우러지는 미니멀한 디자인이 특징입니다.",
+    care:
+      "오염 시 부드러운 브러시로 가볍게 관리해 주세요. 물기와 직사광선을 피해 보관하시고, " +
+      "형태 유지를 위해 통풍이 잘되는 곳에서 보관하시기 바랍니다.",
+  },
+  "Frozen Bloom Dress": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "프리미엄 니트 원사와 핸드메이드 뜨개 디테일을 사용하여 부드러운 착용감과 우아한 실루엣을 " +
+      "제공합니다. 몸을 자연스럽게 감싸는 니트 소재와 드레이프 디테일이 조화를 이루어 편안하면서도 " +
+      "세련된 스타일을 완성합니다.",
+    care:
+      "제품의 형태와 뜨개 디테일을 오래 유지하기 위해 드라이클리닝을 권장합니다. 장시간 마찰과 " +
+      "늘어짐에 주의하시고, 직사광선을 피해 보관하시기 바랍니다.",
+  },
+  "Frozen Bloom Leg Warmer": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "핸드메이드 뜨개 원사로 제작되어 가볍고 유연한 착용감을 제공합니다. 섬세한 오픈워크 패턴이 " +
+      "특징이며 다양한 스타일링에 포인트를 더할 수 있습니다.",
+    care:
+      "손세탁 또는 드라이클리닝을 권장합니다. 뜨개 조직이 손상되지 않도록 강한 마찰을 피하고, " +
+      "평평한 곳에 눕혀 건조해 주시기 바랍니다.",
+  },
 };
 
 function SizeTable({ rows }: { rows: SizeRow[] }) {
