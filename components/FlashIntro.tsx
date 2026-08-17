@@ -2,56 +2,44 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { COLORS, FONTS } from "@/lib/assets";
+import { FONTS } from "@/lib/assets";
 
-// FLASH DECLARATION 오프닝 — 접속 직후 3컷 스트로브 타이포 → Main_Interaction.mp4
-// 컷1: UNFINISHED. (흑/백) → 컷2: BY DESIGN. (핑크 풀스크린/흑) → 컷3: FINISH IT. (흑/핑크)
-// → 타이포 종료 → 영상 재생 → 종료 시 오버레이 페이드아웃
-const CUTS = [
-  { text: "UNFINISHED.", bg: "#000000", fg: "#ffffff" },
-  { text: "BY DESIGN.",  bg: COLORS.pink, fg: "#000000" },
-  { text: "FINISH IT.",  bg: "#000000", fg: COLORS.pink },
-] as const;
+// 오프닝 — 접속 직후(또는 로고 클릭 시) 재생. 타이포 컷 없이 영상 두 개를 이어서 보여준다.
+// 1) Logo_Motion_VoiceO.mp4 — 소리 포함, 언뮤트로 먼저 재생
+// 2) Main_Interaction.mp4  — 기존 모션. 끝나기 직전 DRAW TO KNIT 캔버스 크기로 축소되며 이어진다
+type Phase = "voice" | "main" | "done";
 
-const CUT_MS = 450;        // 컷 유지 시간
 const SHRINK_WINDOW = 1.0; // 영상 종료 전 이 구간(초) 동안 DRAW TO KNIT 크기(72%)로 축소
 const SHRINK_TO = 0.72;    // computeLogoRect의 w = vw * 0.72 와 동일
+const STALL_LIMIT = 6;     // 500ms × 6 = 3초 정지 시 다음 단계로 강제 진행
 
 export default function FlashIntro({ onDone }: { onDone: () => void }) {
-  // 0,1,2: 타이포 컷 / 3: 영상 재생 / 4: 종료(페이드)
-  const [phase, setPhase] = useState(0);
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [phase, setPhase] = useState<Phase>("voice");
   const doneRef = useRef(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const voiceRef = useRef<HTMLVideoElement>(null);
+  const mainRef = useRef<HTMLVideoElement>(null);
   const rafRef = useRef<number | null>(null);
+
+  const activeRef = phase === "voice" ? voiceRef : mainRef;
 
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
-    timersRef.current.forEach(clearTimeout);
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    setPhase(4);
+    setPhase("done");
     setTimeout(onDone, 350);
   };
 
-  useEffect(() => {
-    const t = timersRef.current;
-    t.push(setTimeout(() => setPhase(1), CUT_MS));
-    t.push(setTimeout(() => setPhase(2), CUT_MS * 2));
-    t.push(setTimeout(() => setPhase(3), CUT_MS * 3));
-    return () => t.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // 재생 감시 — setInterval 기반이라 백그라운드 탭에서도 동작한다 (rAF는 hidden 탭에서 완전 정지).
-  // 브라우저가 영상을 강제 pause시키면 재개하고, 3초 이상 진행이 없으면 인트로를 강제 종료한다
+  // 브라우저가 영상을 강제 pause시키면 재개하고, 3초 이상 진행이 없으면 다음 단계로 넘어간다
   // (오버레이가 페이지를 영원히 덮는 것 방지).
   useEffect(() => {
-    if (phase !== 3) return;
+    if (phase === "done") return;
     let lastT = -1;
     let stallCount = 0;
+    const advance = () => (phase === "voice" ? setPhase("main") : finish());
     const t = setInterval(() => {
-      const v = videoRef.current;
+      const v = activeRef.current;
       if (!v) return;
       if (v.currentTime !== lastT) {
         lastT = v.currentTime;
@@ -60,18 +48,18 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
       }
       stallCount += 1;
       if (v.paused && !doneRef.current) v.play().catch(() => {});
-      if (stallCount >= 6) finish(); // 500ms × 6 = 3초 정지 시 종료
+      if (stallCount >= STALL_LIMIT) advance();
     }, 500);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  // rAF로 매 프레임 직접 transform을 갱신 — timeupdate(약 250ms 간격) 대비 완전히 부드러움
+  // rAF로 매 프레임 직접 transform을 갱신 — main 단계에서만, 종료 직전 DRAW TO KNIT 크기로 축소
   useEffect(() => {
-    if (phase < 3) return;
+    if (phase !== "main") return;
     const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
     const loop = () => {
-      const v = videoRef.current;
+      const v = mainRef.current;
       if (v && v.duration) {
         const remaining = v.duration - v.currentTime;
         const raw = remaining <= SHRINK_WINDOW ? 1 - Math.max(0, remaining) / SHRINK_WINDOW : 0;
@@ -84,57 +72,47 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [phase]);
 
-  const cut = CUTS[Math.min(phase, 2)];
-
   return (
     <motion.div
       onClick={finish}
-      animate={{ opacity: phase === 4 ? 0 : 1 }}
+      animate={{ opacity: phase === "done" ? 0 : 1 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{
         position: "fixed", inset: 0, zIndex: 10000,
-        backgroundColor: phase >= 3 ? "#000000" : cut.bg,
+        backgroundColor: "#000000",
         display: "flex", alignItems: "center", justifyContent: "center",
         overflow: "hidden", cursor: "pointer",
-        transition: "background-color 0.05s linear",
       }}
     >
-      {/* 타이포 컷 — 하드 컷 + 과대 스케일 스냅 */}
-      {phase <= 2 && (
-        <motion.h1
-          key={phase}
-          initial={{ scale: 1.12 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          style={{
-            fontFamily: FONTS.condensed, fontWeight: 700,
-            fontSize: "clamp(72px, 14vw, 260px)",
-            letterSpacing: "-0.04em", textTransform: "uppercase",
-            color: cut.fg, margin: 0, lineHeight: 1,
-            whiteSpace: "nowrap", userSelect: "none",
+      {/* 1단계 — 보이스 모션 (소리 포함). 자동재생 정책상 언뮤트가 막히면 음소거로 폴백한다. */}
+      {phase === "voice" && (
+        <motion.video
+          ref={voiceRef}
+          key="voice-motion"
+          src="/Logo_Motion_VoiceO.mp4"
+          playsInline
+          onEnded={() => setPhase("main")}
+          onError={() => setPhase("main")}
+          onLoadedData={(e) => {
+            const v = e.currentTarget;
+            v.muted = false;
+            v.play().catch(() => {
+              // 언뮤트 재생이 막히면(자동재생 정책) 음소거로라도 재생한다
+              v.muted = true;
+              v.play().catch(() => setPhase("main"));
+            });
           }}
-        >
-          {cut.text}
-        </motion.h1>
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       )}
 
-      {/* 컷 전환 화이트 플래시 (1프레임 타격감) */}
-      <AnimatePresence>
-        {phase >= 1 && phase <= 3 && (
-          <motion.div
-            key={`flash-${phase}`}
-            initial={{ opacity: 0.9 }}
-            animate={{ opacity: 0 }}
-            transition={{ duration: 0.09, ease: "linear" }}
-            style={{ position: "absolute", inset: 0, backgroundColor: "#ffffff", pointerEvents: "none" }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* 타이포 종료 후 메인 인터랙션 영상 재생 — 끝나기 직전 DRAW TO KNIT 크기로 축소 (rAF로 매 프레임 갱신) */}
-      {phase >= 3 && (
+      {/* 2단계 — 기존 메인 인터랙션 영상. 끝나기 직전 DRAW TO KNIT 크기로 축소 (rAF로 매 프레임 갱신) */}
+      {phase === "main" && (
         <motion.video
-          ref={videoRef}
+          ref={mainRef}
           key="main-interaction"
           src="/Main_Interaction.mp4"
           autoPlay
@@ -142,8 +120,6 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           playsInline
           onEnded={finish}
           onError={finish}
-          // 디코더 포화 등으로 autoplay가 거부되면 재시도하고, 그래도 안 되면 인트로를 끝낸다
-          // (영상이 멈춘 채 오버레이가 페이지 전체를 영원히 덮는 것 방지)
           onLoadedData={(e) => {
             const v = e.currentTarget;
             v.play().catch(() => finish());
@@ -154,6 +130,58 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           style={{ width: "100%", height: "100%", objectFit: "cover", willChange: "transform" }}
         />
       )}
+
+      {/* 클릭 유도 힌트 — 손가락 탭 애니메이션 + CLICK! 텍스트. 화면 중앙 하단. */}
+      <AnimatePresence>
+        {phase !== "done" && <TapHint />}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// 손가락으로 탭하는 듯한 작은 인터랙션 — 링이 퍼졌다 사라지고, 그 위에 점(손끝)이
+// 눌리듯 스케일 다운했다 올라오는 동작을 반복한다.
+function TapHint() {
+  return (
+    <motion.div
+      key="tap-hint"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, delay: 0.6 }}
+      style={{
+        position: "absolute", bottom: "9%", left: "50%", transform: "translateX(-50%)",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "10px",
+        pointerEvents: "none",
+      }}
+    >
+      <div style={{ position: "relative", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {/* 퍼지는 링 */}
+        <motion.span
+          animate={{ scale: [0.4, 1.6], opacity: [0.6, 0] }}
+          transition={{ duration: 1.3, repeat: Infinity, ease: "easeOut" }}
+          style={{
+            position: "absolute", width: 30, height: 30, borderRadius: "50%",
+            border: "1.5px solid #ffffff",
+          }}
+        />
+        {/* 손끝 — 눌렸다 떼지는 탭 동작 */}
+        <motion.span
+          animate={{ scale: [1, 0.72, 1] }}
+          transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut", times: [0, 0.35, 1] }}
+          style={{
+            width: 14, height: 14, borderRadius: "50%",
+            background: "#ffffff",
+          }}
+        />
+      </div>
+      <span style={{
+        fontFamily: FONTS.condensed, fontWeight: 700,
+        fontSize: "15px", letterSpacing: "0.04em", textTransform: "uppercase",
+        color: "#ffffff",
+      }}>
+        Click!
+      </span>
     </motion.div>
   );
 }
