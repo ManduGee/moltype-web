@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
-import Header from "./Header";
+import Header, { HEADER_H } from "./Header";
 
 interface Props {
   children: ReactNode;
@@ -16,7 +16,7 @@ export default function PageLayout({ children }: Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ paddingTop: "calc(80px * var(--inv-zoom, 1))" }}
+        style={{ paddingTop: `calc(${HEADER_H}px * var(--inv-zoom, 1))` }}
       >
         {children}
       </motion.main>

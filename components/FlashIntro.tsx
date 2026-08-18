@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FONTS } from "@/lib/assets";
+import { HEADER_H } from "@/components/Header";
 
 // 오프닝 — 접속 직후(또는 로고 클릭 시) 재생. 타이포 컷 없이 영상 두 개를 이어서 보여준다.
 // 1) Logo_Motion_VoiceO.mp4 — 소리 포함, 언뮤트로 먼저 재생
@@ -12,7 +13,6 @@ type Phase = "voice" | "main" | "done";
 const SHRINK_WINDOW = 1.0; // 영상 종료 전 이 구간(초) 동안 DRAW TO KNIT 크기(72%)로 축소
 const SHRINK_TO = 0.72;    // computeLogoRect의 w = vw * 0.72 와 동일
 const STALL_LIMIT = 6;     // 500ms × 6 = 3초 정지 시 다음 단계로 강제 진행
-const HEADER_H = 80;       // Header.tsx와 동일 — 음소거 버튼이 헤더 아래에 오도록
 
 export default function FlashIntro({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<Phase>("voice");

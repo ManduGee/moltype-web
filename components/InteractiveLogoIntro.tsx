@@ -2,10 +2,9 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Header from "@/components/Header";
+import Header, { HEADER_H } from "@/components/Header";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const HEADER_H   = 80;
 const CELL       = 12;
 const BRUSH_MIN  = 20;
 const BRUSH_MAX  = 120;
