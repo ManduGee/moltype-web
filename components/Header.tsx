@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { label: "FLAGSHIP STORE", href: "/flagship-store" },
 ] as const;
 
-export const HEADER_H = 90; // 헤더 높이 90px
+export const HEADER_H = 80; // 헤더 높이 80px
 const LOGO_DISPLAY_H = 40;
 const LOGO_DISPLAY_W = Math.round(LOGO_DISPLAY_H * (974 / 377)); // ≈103
 

@@ -96,7 +96,9 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
       animate={{ opacity: phase === "done" ? 0 : 1 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{
-        position: "fixed", inset: 0, zIndex: 10000,
+        // 상단을 헤더 높이만큼 내려서, 모션 자체가 헤더 아래에서 시작한다
+        // (헤더가 모션 위에 그냥 겹쳐 위쪽이 가려 보이는 것과 다르다).
+        position: "fixed", top: HEADER_H, left: 0, right: 0, bottom: 0, zIndex: 10000,
         backgroundColor: "#000000",
         display: "flex", alignItems: "center", justifyContent: "center",
         overflow: "hidden", cursor: "pointer",
@@ -150,13 +152,14 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
         />
       )}
 
-      {/* 음소거 토글 — 화면 우상단, 헤더 아래 */}
+      {/* 음소거 토글 — 화면 우상단. 컨테이너 자체가 이미 헤더 아래에서 시작하므로
+          여기서는 헤더 높이를 다시 더하지 않는다. */}
       {phase !== "done" && (
         <button
           onClick={toggleSound}
           aria-label={soundOn ? "Mute" : "Unmute"}
           style={{
-            position: "absolute", top: HEADER_H + 20, right: 24, zIndex: 1,
+            position: "absolute", top: 20, right: 24, zIndex: 1,
             width: 40, height: 40, borderRadius: "50%",
             background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.5)",
             display: "flex", alignItems: "center", justifyContent: "center",
