@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# GitHub의 100MB 파일 크기 제한을 넘는 원본 — 압축본/대체 파일 준비되면 다시 커밋
+public/Main_Motion/Website_main_M_05.jpg
+public/Main_Motion/Website_main_M_05.mp4
