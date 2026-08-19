@@ -1034,6 +1034,29 @@ export default function ProductPage() {
   const [showCart, setShowCart] = useState(false);
   const products = SEASON_PRODUCTS[seasonIndex];
 
+  // ── 딥링크 — /product?season=Autumn&product=Pastel%20Grung%20Knit ─────────
+  // 모션 갤러리에서 특정 상품으로 바로 들어올 때 쓴다. useSearchParams 대신
+  // location.search를 읽는 이유: 이 페이지는 정적 생성 대상이라 useSearchParams를 쓰면
+  // Suspense 경계 없이는 프로덕션 빌드가 실패한다.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const season = params.get("season");
+    const name = params.get("product");
+    if (!season && !name) return;
+
+    const idx = SEASON_LABELS.findIndex(
+      s => s.toLowerCase() === (season ?? "").toLowerCase(),
+    );
+    if (idx >= 0) setSeasonIndex(idx);
+
+    if (name) {
+      // 시즌이 지정됐으면 그 시즌에서, 아니면 전체에서 이름으로 찾는다
+      const pool = idx >= 0 ? SEASON_PRODUCTS[idx] : SEASON_PRODUCTS.flat();
+      const found = pool.find(p => p.name.toLowerCase() === name.toLowerCase());
+      if (found) setSelectedProduct(found);
+    }
+  }, []);
+
   const handleAddToCart = (item: CartItem) => {
     setCartItems(prev => [...prev, item]);
   };

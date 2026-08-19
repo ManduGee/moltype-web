@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header, { HEADER_H } from "@/components/Header";
+import { RETURN_TO_GALLERY_KEY } from "@/components/MotionScatterGallery";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CELL       = 12;
@@ -27,7 +28,9 @@ const LINE_SRCS = [
 ] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function InteractiveLogoIntro() {
+// startCompleted: 상품 페이지에서 뒤로 돌아온 경우처럼, 드로잉을 건너뛰고
+// 처음부터 '완료' 상태(스크롤 잠금 해제)로 시작해야 할 때 true를 넘긴다.
+export default function InteractiveLogoIntro({ startCompleted = false }: { startCompleted?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // ── 오프스크린 캔버스 ─────────────────────────────────────────────────────
@@ -74,15 +77,19 @@ export default function InteractiveLogoIntro() {
   const [mounted,         setMounted]         = useState(false);
   const [fillRatio,       setFillRatio]       = useState(0);
   const [hasStarted,      setHasStarted]      = useState(false);
-  const [isComplete,      setIsComplete]      = useState(false);
-  const [showSlogan,      setShowSlogan]      = useState(false);
-  const [progressOpacity, setProgressOpacity] = useState(1);
+  const [isComplete,      setIsComplete]      = useState(startCompleted);
+  const [showSlogan,      setShowSlogan]      = useState(startCompleted);
+  const [progressOpacity, setProgressOpacity] = useState(startCompleted ? 0 : 1);
   // v10: 털 로고 전환 제거 — outline/canvas opacity 고정, fur 없음
   const [cursorPos,       setCursorPos]       = useState({ x: -300, y: -300 });
   const [cursorInside,    setCursorInside]    = useState(false);
   const [brushVis,        setBrushVis]        = useState(BRUSH_DEF);
   // v9: 힌트 텍스트 위치 = 로고 하단 + 32px (top 기준)
   const [hintTop, setHintTop] = useState<number | null>(null);
+  // 로고 좌표를 렌더에 쓰려면 반드시 state여야 한다. ref(logoRect)만 읽으면 값이 바뀌어도
+  // 리렌더가 일어나지 않아, 로고 이미지가 예전(때로는 0×0) 좌표에 그대로 남아 사라진다.
+  // logoRect는 매 프레임 도는 드로잉 로직용으로 계속 두고, 렌더용으로 이 state를 함께 갱신한다.
+  const [rect, setRect] = useState({ x: 0, y: 0, w: 0, h: 0 });
 
   // ── HAND MODE (웹캠 핸드 트래킹) ──────────────────────────────────────────
   const [handMode,   setHandMode]   = useState(false);
@@ -113,6 +120,35 @@ export default function InteractiveLogoIntro() {
     return () => { document.body.style.overflow = ""; };
   }, [isComplete]);
 
+  // startCompleted는 마운트 직후(홈이 sessionStorage를 읽은 뒤)에 켜지므로, 값 변화에도 맞춰준다.
+  useEffect(() => {
+    if (!startCompleted) return;
+    completedRef.current = true; // 드로잉 입력 차단
+    setIsComplete(true);
+    setShowSlogan(true);
+    setProgressOpacity(0);
+  }, [startCompleted]);
+
+  // ── 새로고침 시 항상 처음(로고 모션 → 뜨개 체험)부터 ──────────────────────
+  // 브라우저는 기본적으로 새로고침 시 스크롤 위치를 복원한다. 모션 갤러리까지 내려간
+  // 상태에서 새로고침하면 그 위치가 그대로 복원돼, 위에 있는 뜨개 체험을 건너뛴 것처럼 보인다.
+  // 복원을 끄고 맨 위로 돌려놓는다.
+  // 단, 상품 페이지에서 뒤로 돌아온 경우는 예외 — 홈이 갤러리로 스크롤시킬 참이라
+  // 여기서 맨 위로 되돌리면 화면이 한 번 튀었다가 내려간다.
+  // prop(startCompleted) 대신 표시를 직접 읽는 이유: 이 effect(자식)는 홈의 effect(부모)보다
+  // 먼저 실행돼서, 이 시점엔 prop이 아직 false다. 표시는 아직 지워지기 전이라 여기서 읽힌다.
+  useEffect(() => {
+    let returning = false;
+    try { returning = sessionStorage.getItem(RETURN_TO_GALLERY_KEY) === "1"; } catch {}
+    const prev = history.scrollRestoration;
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    if (!returning) window.scrollTo(0, 0);
+    return () => {
+      if ("scrollRestoration" in history) history.scrollRestoration = prev ?? "auto";
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── 레이아웃 계산 — outline 실제 비율 사용, fallback은 941/1672 ────────────
   const computeLogoRect = useCallback((vw: number, vh: number) => {
     const nat   = outlineNaturalRef.current;
@@ -132,7 +168,8 @@ export default function InteractiveLogoIntro() {
     lw: number, lh: number,
   ) => {
     const fc = fillMaskRef.current;
-    if (!fc) return;
+    // vw/vh가 아직 0인 초기 레이아웃 타이밍(리사이즈 직후 등)에는 스킵 — 다음 리사이즈/재시도에서 정상 크기로 다시 호출된다
+    if (!fc || lw <= 0 || lh <= 0) return;
     fc.width = lw; fc.height = lh;
     const ctx = fc.getContext("2d")!;
     ctx.imageSmoothingEnabled = false;
@@ -301,17 +338,18 @@ export default function InteractiveLogoIntro() {
     const ctx = canvas.getContext("2d")!;
     ctx.scale(DPR, DPR);
 
-    const rect = computeLogoRect(vw, vh);
-    logoRect.current = rect;
+    const initRect = computeLogoRect(vw, vh);
+    logoRect.current = initRect;
+    setRect(initRect);
 
     // 힌트 top 초기값 (outline 로드 전 fallback — outline onload에서 재계산됨)
-    setHintTop(rect.y + rect.h - 10);
+    setHintTop(initRect.y + initRect.h - 10);
 
     // 오프스크린 캔버스 (LOGO_W × LOGO_H)
     const mk = () => document.createElement("canvas");
-    const ac = mk(); ac.width = rect.w; ac.height = rect.h;
-    const fc = mk(); fc.width = rect.w; fc.height = rect.h;
-    const tc = mk(); tc.width = rect.w; tc.height = rect.h;
+    const ac = mk(); ac.width = initRect.w; ac.height = initRect.h;
+    const fc = mk(); fc.width = initRect.w; fc.height = initRect.h;
+    const tc = mk(); tc.width = initRect.w; tc.height = initRect.h;
     accumRef.current    = ac;
     fillMaskRef.current = fc;
     tempRef.current     = tc;
@@ -321,9 +359,32 @@ export default function InteractiveLogoIntro() {
     let outlineDone = false, maskDone = false;
     let fillMaskImgRef: HTMLImageElement | null = null;
 
-    const tryInit = (freshRect?: { x: number; y: number; w: number; h: number }) => {
+    // 뷰포트가 아직 0인 타이밍에 걸리면 마스크를 만들 수 없어 드로잉이 아예 죽는다.
+    // 그 경우 다음 프레임에 다시 시도해, 실제 크기가 잡히는 즉시 스스로 복구되게 한다.
+    let retryRaf = 0;
+    const tryInit = () => {
       if (!outlineDone || !maskDone || !fillMaskImgRef) return;
-      const r = freshRect ?? rect;
+      const vw2 = window.innerWidth, vh2 = window.innerHeight;
+      const r = computeLogoRect(vw2, vh2);
+      if (r.w <= 0 || r.h <= 0) {
+        retryRaf = requestAnimationFrame(tryInit);
+        return;
+      }
+      logoRect.current = r;
+      setHintTop(r.y + r.h - 10);
+      setRect(r);              // 새 좌표로 로고 이미지를 반드시 다시 그리게 한다
+
+      // 마운트 시점에 뷰포트가 0이었다면 메인 캔버스도 0으로 남아 있으므로 여기서 같이 맞춘다
+      const DPR2 = window.devicePixelRatio || 1;
+      dprRef.current = DPR2;
+      canvas.width  = vw2 * DPR2;
+      canvas.height = vh2 * DPR2;
+      canvas.style.width  = vw2 + "px";
+      canvas.style.height = vh2 + "px";
+      canvas.getContext("2d")!.scale(DPR2, DPR2);
+
+      [accumRef.current!, fillMaskRef.current!, tempRef.current!]
+        .forEach(c => { c.width = r.w; c.height = r.h; });
       buildFillMask(fillMaskImgRef, r.w, r.h);
       buildTiledPatterns(r.w, r.h);
     };
@@ -336,16 +397,9 @@ export default function InteractiveLogoIntro() {
         w: outlineLoader.naturalWidth,
         h: outlineLoader.naturalHeight,
       };
-      // 비율 갱신 후 rect 재계산
-      const vw2 = window.innerWidth, vh2 = window.innerHeight;
-      const freshRect = computeLogoRect(vw2, vh2);
-      logoRect.current = freshRect;
-      setHintTop(freshRect.y + freshRect.h - 10);
-      // 캔버스 크기 조정
-      [accumRef.current!, fillMaskRef.current!, tempRef.current!]
-        .forEach(c => { c.width = freshRect.w; c.height = freshRect.h; });
       outlineDone = true;
-      tryInit(freshRect);
+      // rect 재계산·캔버스 리사이즈·마스크 생성은 모두 tryInit이 한다
+      tryInit();
     };
     outlineLoader.src = "/logo-outline.png";
 
@@ -361,6 +415,8 @@ export default function InteractiveLogoIntro() {
     // Resize
     const onResize = () => {
       const vw2 = window.innerWidth, vh2 = window.innerHeight;
+      // 모바일에서 주소창 표시/숨김 등으로 순간적으로 0이 찍히는 경우 — 무시하고 다음 리사이즈를 기다린다
+      if (vw2 <= 0 || vh2 <= 0) return;
       const DPR2 = window.devicePixelRatio || 1;
       dprRef.current = DPR2;
       canvas.width  = vw2 * DPR2;
@@ -373,6 +429,7 @@ export default function InteractiveLogoIntro() {
       const r = computeLogoRect(vw2, vh2);
       logoRect.current = r;
       setHintTop(r.y + r.h - 10);
+      setRect(r);
 
       [accumRef.current!, fillMaskRef.current!, tempRef.current!]
         .forEach(c => { c.width = r.w; c.height = r.h; });
@@ -384,7 +441,10 @@ export default function InteractiveLogoIntro() {
       buildTiledPatterns(r.w, r.h);
     };
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (retryRaf) cancelAnimationFrame(retryRaf);
+    };
   }, [computeLogoRect, buildFillMask, buildTiledPatterns]);
 
   // ── Render loop ───────────────────────────────────────────────────────────
@@ -831,7 +891,7 @@ export default function InteractiveLogoIntro() {
   }, [handMode, isInsideLogo, revealBrush, markFilled, scheduleSwitch, nextPattern, handleComplete]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  const { x: lx, y: ly, w: lw, h: lh } = logoRect.current;
+  const { x: lx, y: ly, w: lw, h: lh } = rect;
   const stitchCount = Math.round(fillRatio * 100);
   const brushDia    = brushVis * 2;
 
