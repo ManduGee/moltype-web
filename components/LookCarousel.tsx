@@ -11,10 +11,10 @@ import { motion, AnimatePresence } from "framer-motion";
 // 사운드: 기본 음소거. 모션을 더블클릭하면 확대 오버레이가 열리며 그때만 소리가 재생된다.
 const LOOKS = [
   { src: "/Website_Look01_Motion.mp4" },
-  { src: "/Spring_Real_FInal.mp4" },
-  { src: "/Summer_Real_Final.mp4" },
-  { src: "/Fall_Real_Final.mp4" },
-  { src: "/Winter_final_Motion.mp4" },
+  { src: "/Spring_Motion.mp4" },
+  { src: "/Summer_Motion.mp4" },
+  { src: "/Fall_Motion.mp4" },
+  { src: "/Winter_Motion.mp4" },
   { src: null }, // TODO: Look06 영상 준비되면 교체
 ] as const;
 

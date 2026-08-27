@@ -6,7 +6,7 @@ import { FONTS } from "@/lib/assets";
 import { HEADER_H } from "@/components/Header";
 
 // 오프닝 — 접속 직후(또는 로고 클릭 시) 재생. 타이포 컷 없이 영상 두 개를 이어서 보여준다.
-// 1) Logo_Motion_VoiceO.mp4 — 소리 포함, 언뮤트로 먼저 재생
+// 1) Logo_Motion_수정1.mp4 — 소리 포함, 언뮤트로 먼저 재생
 // 2) Main_Interaction.mp4  — 기존 모션. 끝나기 직전 DRAW TO KNIT 캔버스 크기로 축소되며 이어진다
 type Phase = "voice" | "main" | "done";
 
@@ -109,7 +109,7 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
         <motion.video
           ref={voiceRef}
           key="voice-motion"
-          src="/Logo_Motion_VoiceO.mp4"
+          src="/Logo_Motion_수정1.mp4"
           playsInline
           onEnded={() => setPhase("main")}
           onError={() => setPhase("main")}

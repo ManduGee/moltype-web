@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 
 // 영상 교체가 쉽도록 경로를 배열로 관리 — 봄 → 여름 → 가을 → 겨울
 const HERO_VIDEOS = [
-  { src: "/Spring_Real_FInal.mp4", label: "Spring" },
-  { src: "/Summer_Real_Final.mp4", label: "Summer" },
-  { src: "/Fall_Real_Final.mp4",   label: "Autumn" },
-  { src: "/Winter_final_Motion.mp4", label: "Winter" },
+  { src: "/Spring_Motion.mp4", label: "Spring" },
+  { src: "/Summer_Motion.mp4", label: "Summer" },
+  { src: "/Fall_Motion.mp4",   label: "Autumn" },
+  { src: "/Winter_Motion.mp4", label: "Winter" },
 ] as const;
 
 const TRANSITION_SEC = 1.2;       // 크로스페이드 시간 (부드러운 전환)
