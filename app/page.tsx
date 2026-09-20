@@ -34,8 +34,9 @@ export default function Page() {
   // 갤러리로 스크롤 — 뜨개 섹션이 '완료' 상태로 바뀌어 스크롤 잠금이 풀린 뒤에 실행돼야 한다.
   useEffect(() => {
     if (!returningToGallery) return;
+    // 갤러리는 스크롤로 카드를 넘기는 긴 섹션이라, 가운데가 아니라 시작점(첫 카드)에 맞춘다
     const toGallery = () =>
-      document.getElementById(GALLERY_ID)?.scrollIntoView({ block: "center" });
+      document.getElementById(GALLERY_ID)?.scrollIntoView({ block: "start" });
     // 먼저 즉시 이동한다 — rAF에만 맡기면 배경 탭처럼 프레임이 멈춘 상황에서 영영 실행되지 않는다.
     toGallery();
     // 이미지가 늦게 자리를 잡아 위치가 밀리는 경우를 대비해 다음 프레임에 한 번 더 맞춘다.

@@ -11,6 +11,8 @@ import BrandStoryHeroCarousel from "@/components/BrandStoryHeroCarousel";
 import { PATTERNS, COLORS, FONTS } from "@/lib/assets";
 
 const SIZES = ["XS", "S", "M", "L", "XL"] as const;
+// 신발류 — 230부터 270까지 10mm 단위
+const SHOE_SIZES = ["230", "240", "250", "260", "270"] as const;
 
 // 한글 설명은 DESC_KO에서 영문 설명을 키로 찾으므로, 상수로 묶어 양쪽이 어긋나지 않게 한다.
 // 줄바꿈은 원문 그대로 유지한다 (렌더링 시 white-space: pre-line)
@@ -29,20 +31,32 @@ const DESC_FROZEN_DRESS_EN = "Frozen Bloom Dress — slim knit silhouette with c
 const DESC_FROZEN_LEGWARMER_EN = "Frozen Bloom Leg Warmers — crocheted texture reminiscent of ice crystals.";
 const DESC_FROZEN_BOOTS_EN = "Frozen Bloom Boots — minimal silhouette paired with the leg warmers.";
 
+// Spring — 설명은 public/Product_Detail_Cut/Spring/<패밀리>/<품목>/설명 파일 원문
+const DESC_BG_DRESS_EN     = "Blooming Garden Dress — hundreds of hand-crocheted flowers layered into a mini dress.";
+const DESC_BG_LEGWARMER_EN = "Blooming Garden Leg Warmer — the dress's flower motifs flowing down the leg.";
+const DESC_BG_HEELS_EN     = "Blooming Garden Heels — platform boots crowned with crocheted flowers.";
+const DESC_BT_JACKET_EN    = "Bloom Tailored Jacket — crocheted flowers blooming over precise tailoring.";
+const DESC_BT_PANTS_EN     = "Bloom Tailored Pants — restrained wide silhouette with crochet lace at the hem.";
+const DESC_BT_BAG_EN       = "Bloom Tailored Bag — refined bag with crochet flowers and fringe.";
+const DESC_BT_HEELS_EN     = "Bloom Tailored Heels — pointed-toe heels with crocheted flower detail.";
+const DESC_SR_TOP_EN       = "Soft Reverie Top — satin panels with delicate crochet sleeves.";
+const DESC_SR_PANTS_EN    = "Soft Reverie Pants — softly flowing wide satin pants.";
+const DESC_SR_SLIPPERS_EN  = "Soft Reverie Slippers — satin-textured shoes with ribbon detail.";
+
 // ─── 시즌별 상품 데이터 ────────────────────────────────────────────────────────
 const SEASON_PRODUCTS = [
   // 0 — Spring
   [
-    { id: 1,  name: "Blooming Garden Dress", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Spring/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 2,  name: "Blooming Garden Leg Warmer", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 3,  name: "Blooming Garden Heels", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 4,  name: "Bloom Tailored Jacket", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 5,  name: "Bloom Tailored Pants", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 6,  name: "Bloom Tailored Bag", tag: "SPRING / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.",  image: "/assets/Spring/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 7,  name: "Bloom Tailored Heels", tag: "SPRING / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.",   image: "/assets/Spring/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8,  name: "Soft Reverie Top", tag: "SPRING / 2026", desc: "A pair of shorts with space left at the seam.",                       image: "/assets/Spring/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 112,000" },
-    { id: 9,  name: "Soft Reverie Bottom", tag: "SPRING / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.",     image: "/assets/Spring/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 158,000" },
-    { id: 10, name: "Soft Reverie Slippers", tag: "SPRING / 2026", desc: "The seam is the question. You decide where it ends.",                 image: "/assets/Spring/Website_Product_Asset_10.png", bg: "#F8FDF9", price: "₩ 142,000" },
+    { id: 1,  name: "Blooming Garden Dress",      tag: "SPRING / 2026", desc: DESC_BG_DRESS_EN,     image: "/assets/Spring/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 2,  name: "Blooming Garden Leg Warmer", tag: "SPRING / 2026", desc: DESC_BG_LEGWARMER_EN, image: "/assets/Spring/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 3,  name: "Blooming Garden Heels",      tag: "SPRING / 2026", desc: DESC_BG_HEELS_EN,     image: "/assets/Spring/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 4,  name: "Bloom Tailored Jacket",      tag: "SPRING / 2026", desc: DESC_BT_JACKET_EN,    image: "/assets/Spring/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 5,  name: "Bloom Tailored Pants",       tag: "SPRING / 2026", desc: DESC_BT_PANTS_EN,     image: "/assets/Spring/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 138,000" },
+    { id: 6,  name: "Bloom Tailored Bag",         tag: "SPRING / 2026", desc: DESC_BT_BAG_EN,       image: "/assets/Spring/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    { id: 7,  name: "Bloom Tailored Heels",       tag: "SPRING / 2026", desc: DESC_BT_HEELS_EN,     image: "/assets/Spring/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 8,  name: "Soft Reverie Top",           tag: "SPRING / 2026", desc: DESC_SR_TOP_EN,       image: "/assets/Spring/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 112,000" },
+    { id: 9,  name: "Soft Reverie Pants",        tag: "SPRING / 2026", desc: DESC_SR_PANTS_EN,    image: "/assets/Spring/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 158,000" },
+    { id: 10, name: "Soft Reverie Slippers",      tag: "SPRING / 2026", desc: DESC_SR_SLIPPERS_EN,  image: "/assets/Spring/Website_Product_Asset_10.png", bg: "#F8FDF9", price: "₩ 142,000" },
   ],
   // 1 — Summer
   [
@@ -62,13 +76,13 @@ const SEASON_PRODUCTS = [
   [
     { id: 1, name: "Pastel Grung Knit", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_01.png", bg: "#F8FDF9", price: "₩ 158,000" },
     { id: 2, name: "Pastel Grung Pants", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Fall/Website_Product_Asset_02.png", bg: "#F8FDF9", price: "₩ 128,000" },
-    { id: 3, name: "Pastel Grung Shoes", tag: "AUTUMN / 2026", desc: "The seam is the question. You decide where it ends.", image: "/assets/Fall/Website_Product_Asset_03.png", bg: "#F8FDF9", price: "₩ 138,000" },
-    { id: 4, name: "Office Contrast Jacket", tag: "AUTUMN / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Fall/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 108,000" },
-    { id: 5, name: "Office Contrast Skirt", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
-    { id: 6, name: "Office Contrast Heels", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 168,000" },
-    { id: 7, name: "Office Contrast Glasses", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
-    { id: 8, name: "Contrast Grung Shirts", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 148,000" },
-    { id: 9, name: "Contrast Grung Pants", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Fall/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 128,000" },
+    // 03(Pastel Grung Shoes)은 라인업에서 제외.
+    { id: 3, name: "Office Contrast Jacket", tag: "AUTUMN / 2026", desc: "A pair of shorts with space left at the seam.", image: "/assets/Fall/Website_Product_Asset_04.png", bg: "#F8FDF9", price: "₩ 108,000" },
+    { id: 4, name: "Office Contrast Skirt", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_05.png", bg: "#F8FDF9", price: "₩ 98,000" },
+    { id: 5, name: "Office Contrast Heels", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_06.png", bg: "#F8FDF9", price: "₩ 168,000" },
+    { id: 6, name: "Office Contrast Glasses", tag: "AUTUMN / 2026", desc: "Open-ended wear for open-ended use. Patch the flower or leave it.", image: "/assets/Fall/Website_Product_Asset_07.png", bg: "#F8FDF9", price: "₩ 118,000" },
+    { id: 7, name: "Contrast Grung Shirts", tag: "AUTUMN / 2026", desc: "A wearable surface made to be interrupted. Same form, new skin.", image: "/assets/Fall/Website_Product_Asset_08.png", bg: "#F8FDF9", price: "₩ 148,000" },
+    { id: 8, name: "Contrast Grung Pants", tag: "AUTUMN / 2026", desc: "A ribbed crop top with an open neckline. Designed to be completed.", image: "/assets/Fall/Website_Product_Asset_09.png", bg: "#F8FDF9", price: "₩ 128,000" },
   ],
   // 3 — Winter
   [
@@ -126,6 +140,53 @@ const DESC_KO: Record<string, string> = {
     "겨울철 실용성과 감각적인 디자인을 동시에 담은 Frozen Bloom Boots입니다. 미니멀한 실루엣과 " +
     "안정적인 착화감이 특징이며, 뜨개 레그워머와 조화를 이루어 Frozen Bloom 컬렉션의 우아한 무드를 " +
     "완성합니다.",
+
+  // ── Spring ──
+  [DESC_BG_DRESS_EN]:
+    "수백 개의 핸드메이드 크로셰 플라워 모티프를 레이어링하여 완성한 미니 드레스입니다. 다양한 크기와 " +
+    "컬러의 꽃들이 유기적으로 연결되어 하나의 살아있는 정원을 연상시키며, 입체적인 텍스처가 독보적인 " +
+    "존재감을 선사합니다. 슬림한 실루엣과 풍성한 플라워 디테일의 대비가 로맨틱하면서도 아방가르드한 " +
+    "무드를 연출합니다.",
+  [DESC_BG_LEGWARMER_EN]:
+    "드레스와 동일한 플라워 모티프를 활용해 제작된 레그워머입니다. 다채로운 꽃 장식이 다리를 따라 " +
+    "자연스럽게 흐르며, 룩 전체에 통일감을 부여합니다. 움직일 때마다 꽃들이 미세하게 흔들리며 생동감 " +
+    "있는 실루엣을 만들어냅니다.",
+  [DESC_BG_HEELS_EN]:
+    "볼륨감 있는 플랫폼 실루엣 위에 크로셰 플라워 장식을 더한 부츠입니다. 안정적인 착화감과 강렬한 " +
+    "존재감을 동시에 갖추었으며, 플라워 디테일이 의상과 자연스럽게 연결되어 하나의 완성된 정원처럼 " +
+    "보이도록 설계되었습니다.",
+  [DESC_BT_JACKET_EN]:
+    "정교한 테일러링 위에 크로셰 플라워가 피어난 재킷입니다. 구조적인 실루엣과 유기적인 꽃 장식이 " +
+    "대비를 이루며, 기성복의 질서 속에서 개인의 취향이 자연스럽게 드러나는 순간을 표현합니다. 재킷 " +
+    "전면을 따라 흐르는 핸드메이드 플라워 모티프는 마치 의복 위에서 꽃이 자라나는 듯한 인상을 만들며, " +
+    "MOLTYPE만의 부드러운 조형미를 완성합니다.",
+  [DESC_BT_PANTS_EN]:
+    "절제된 와이드 실루엣에 크로셰 레이스 디테일을 더한 팬츠입니다. 미니멀한 구조 속에서도 밑단에 " +
+    "피어난 꽃 장식이 은은한 존재감을 드러내며, 움직임에 따라 다양한 표정을 만들어냅니다. 재킷과 함께 " +
+    "착용했을 때 하나의 정원처럼 이어지는 통일감을 형성합니다.",
+  [DESC_BT_BAG_EN]:
+    "정제된 형태의 백 위에 크로셰 플라워와 프린지 디테일을 더해 완성한 핸드백입니다. 단순한 수납 " +
+    "기능을 넘어 Bloom Tailored Edition의 서사를 담아내는 오브제로 기능하며, 꽃이 피어나는 순간의 " +
+    "생동감을 입체적인 텍스처로 표현합니다. 스타일링에 자연스러운 포인트를 더하면서도 컬렉션 전체를 " +
+    "연결하는 역할을 합니다.",
+  [DESC_BT_HEELS_EN]:
+    "우아한 포인티드 토 실루엣에 크로셰 플라워 디테일을 적용한 힐입니다. 의상 곳곳에 피어난 꽃 " +
+    "장식과 연결되어 하나의 완성된 룩을 구성하며, 섬세한 디테일 속에서도 균형 잡힌 테일러링 무드를 " +
+    "유지합니다. 걸음을 옮길 때마다 은은하게 드러나는 장식이 Bloom Tailored Edition의 분위기를 더욱 " +
+    "강조합니다.",
+  [DESC_SR_TOP_EN]:
+    "은은한 광택의 새틴 패널과 섬세한 크로셰 슬리브가 조화를 이루는 탑입니다. 목선과 프런트 라인을 " +
+    "따라 흐르는 러플 디테일이 부드러운 입체감을 더하며, 몸을 자연스럽게 감싸는 슬림한 실루엣이 " +
+    "우아한 분위기를 연출합니다. 투명하게 짜인 크로셰 소매는 가벼운 텍스처를 더해 Soft Reverie " +
+    "특유의 몽환적인 감성을 완성합니다.",
+  [DESC_SR_PANTS_EN]:
+    "부드럽게 흐르는 와이드 실루엣의 새틴 팬츠입니다. 걸을 때마다 자연스럽게 움직이는 소재의 광택이 " +
+    "우아한 분위기를 연출하며, 사이드 리본 디테일이 은은한 포인트가 됩니다. 편안한 착용감과 세련된 " +
+    "실루엣을 동시에 담아 Soft Reverie Edition의 부드러운 무드를 완성합니다.",
+  [DESC_SR_SLIPPERS_EN]:
+    "부드러운 새틴 텍스처와 리본 디테일을 적용하여 제작된 슈즈입니다. 절제된 디자인 속에서도 은은한 " +
+    "광택과 섬세한 장식이 돋보이며, 컬렉션의 로맨틱한 분위기를 자연스럽게 이어줍니다. 가볍고 우아한 " +
+    "실루엣으로 다양한 스타일링에 활용할 수 있습니다.",
 };
 
 // 상품별 상세 컷 — 등록된 상품은 상세 모달에서 이 순서 그대로 노출된다.
@@ -138,11 +199,16 @@ const detailCut = (...segments: string[]) => {
 
 // Front → Side_01 → Side_02 → Back → Product Detail 01~05(가변)
 const STD_ORDER = ["Front.png", "Side_01.png", "Side_02.png", "Back.png"];
-const stdOrder = (ext: string) => STD_ORDER.map((f) => f.replace(".png", `.${ext}`));
 // ext — 새로 받은 컷은 jpg로 오는 경우가 있어 확장자를 선택할 수 있게 한다 (기본 png)
-const withDetails = (season: string, family: string, variant: string, detailCount: number, ext: string = "png") =>
+// back — 네 번째 컷 파일명. 일부 상품(Soft Reverie)은 Back 대신 Bottom으로 왔다.
+const stdOrder = (ext: string, back: string = "Back") =>
+  ["Front", "Side_01", "Side_02", back].map((f) => `${f}.${ext}`);
+const withDetails = (
+  season: string, family: string, variant: string, detailCount: number,
+  ext: string = "png", back: string = "Back",
+) =>
   detailCut(season, family, variant, [
-    ...stdOrder(ext),
+    ...stdOrder(ext, back),
     ...Array.from({ length: detailCount }, (_, i) => `Product_Detail_0${i + 1}.${ext}`),
   ].join(","));
 
@@ -178,6 +244,28 @@ const DETAIL_IMAGES: Record<string, string[]> = {
   "Tundra Knit":  withDetails("Winter", "Tundra ", "Knit", 5, "jpg"),
   "Tundra Boots": withDetails("Winter", "Tundra ", "Shoes", 5, "jpg"),
   "Tundra Layered Skirt": withDetails("Winter", "Tundra ", "Skirt", 4, "jpg"), // 이 컷만 Product Detail 4장뿐
+
+  // ── Spring (전부 jpg) ──
+  // Blooming Garden 패밀리 — Heels 상품은 폴더명도 Heels(설명상으론 부츠 실루엣)
+  "Blooming Garden Dress":      withDetails("Spring", "Blooming Garden", "Dress", 5, "jpg"),
+  "Blooming Garden Leg Warmer": withDetails("Spring", "Blooming Garden", "Leg Warmer", 5, "jpg"),
+  "Blooming Garden Heels":      withDetails("Spring", "Blooming Garden", "Heels", 5, "jpg"),
+
+  // Bloom Tailored 패밀리 — 폴더명과 1:1 일치
+  "Bloom Tailored Jacket": withDetails("Spring", "Bloom Tailored", "Jacket", 5, "jpg"),
+  "Bloom Tailored Pants":  withDetails("Spring", "Bloom Tailored", "Pants", 5, "jpg"),
+  "Bloom Tailored Bag":    withDetails("Spring", "Bloom Tailored", "Bag", 5, "jpg"),
+  "Bloom Tailored Heels":  withDetails("Spring", "Bloom Tailored", "Heels", 5, "jpg"),
+
+  // Soft Reverie 패밀리 — 네 번째 컷이 Back이 아니라 Bottom으로 왔다.
+  // Bottom(상품) → Pants 폴더, Slippers → Shoes 폴더.
+  "Soft Reverie Top":      withDetails("Spring", "Soft Reverie", "Top", 5, "jpg", "Bottom"),
+  "Soft Reverie Pants":   withDetails("Spring", "Soft Reverie", "Pants", 5, "jpg", "Bottom"),
+  "Soft Reverie Slippers": withDetails("Spring", "Soft Reverie", "Shoes", 5, "jpg", "Bottom"),
+
+  // ── Fall (jpg) ── Pastel Grung 패밀리. Pants는 Front/Side/Back 4컷만 있고 Product Detail이 없다.
+  "Pastel Grung Knit":  withDetails("Fall", "Pastel Grung", "Knit", 5, "jpg"),
+  "Pastel Grung Pants": withDetails("Fall", "Pastel Grung", "Pants", 0, "jpg"),
 };
 
 // ─── 상세 모달 레이아웃 (1920 기준 고정 px) ───────────────────────────────────
@@ -207,7 +295,27 @@ const ADD_TO_CART_H = 64;
 
 // 상품별 세부 정보 — 값이 있는 항목만 아코디언에 노출된다.
 type SizeRow = { size: string; length: string; shoulder: string; chest: string; sleeve: string };
-type ProductInfo = { sizeTable?: SizeRow[]; material?: string; care?: string };
+type ShoeRow = { size: string; footLength: string; eu: string };
+type ProductInfo = {
+  // 선택 버튼에 노출할 사이즈 목록. 없으면 의류 기본(XS~XL).
+  sizes?: readonly string[];
+  sizeTable?: SizeRow[];
+  // 신발류는 총장/어깨너비 대신 이 표를 쓴다
+  shoeTable?: ShoeRow[];
+  material?: string;
+  care?: string;
+};
+
+// 신발 사이즈표 — mm 사이즈, 발길이(cm), EU 환산(통상 기준의 근사치)
+const SHOE_TABLE: ShoeRow[] = [
+  { size: "230", footLength: "23.0cm", eu: "36" },
+  { size: "240", footLength: "24.0cm", eu: "37" },
+  { size: "250", footLength: "25.0cm", eu: "38.5" },
+  { size: "260", footLength: "26.0cm", eu: "40" },
+  { size: "270", footLength: "27.0cm", eu: "42" },
+];
+// 신발류 공통 — 사이즈 버튼과 표만 신발용으로 바꾼다
+const SHOE_INFO = { sizes: SHOE_SIZES, shoeTable: SHOE_TABLE } as const;
 
 // 상품마다 실측치가 다르므로, 아직 값을 안 넣은 상품은 이 기본값(Tundra Fur Jacket
 // 기준)으로 채운다. 탭 자체(세부 정보/사이즈/소재 및 관리/배송 및 반품)는 모든 상품에
@@ -233,7 +341,7 @@ const PRODUCT_INFO: Record<string, ProductInfo> = {
   "Tundra Fur Jacket": DEFAULT_INFO,
   // 사이즈표는 아직 실측치가 없어 DEFAULT_INFO(Tundra Fur Jacket 기준)를 그대로 쓴다.
   "Frozen Bloom Boots": {
-    sizeTable: DEFAULT_INFO.sizeTable,
+    ...SHOE_INFO,
     material:
       "프리미엄 스웨이드 텍스처와 부드러운 내피 소재를 사용하여 보온성과 편안한 착화감을 " +
       "제공합니다. 다양한 스타일과 조화롭게 어우러지는 미니멀한 디자인이 특징입니다.",
@@ -259,6 +367,121 @@ const PRODUCT_INFO: Record<string, ProductInfo> = {
     care:
       "손세탁 또는 드라이클리닝을 권장합니다. 뜨개 조직이 손상되지 않도록 강한 마찰을 피하고, " +
       "평평한 곳에 눕혀 건조해 주시기 바랍니다.",
+  },
+
+  // ── Spring — public/Product_Detail_Cut/Spring/<패밀리>/<품목>/소재 및 관리 파일 원문.
+  //    사이즈표는 아직 실측치가 없어 DEFAULT_INFO를 그대로 쓴다.
+  "Blooming Garden Dress": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "핸드메이드 크로셰 플라워 모티프, 니트 베이스 원단, 입체 플라워 아플리케 디테일을 사용하여 정원 " +
+      "속 꽃들이 피어난 듯한 풍성한 입체감을 표현했습니다. 수작업으로 연결된 다양한 꽃 모티프가 " +
+      "유기적으로 어우러져 독창적인 실루엣을 완성합니다.",
+    care:
+      "제품의 형태와 장식을 오래 유지하기 위해 드라이클리닝을 권장합니다. 꽃 모티프 부분에 강한 " +
+      "마찰이나 당김을 가하지 마시고, 보관 시에는 접어서 보관해 주세요. 직사광선과 고온 환경은 변색 및 " +
+      "형태 변형의 원인이 될 수 있으므로 피해주시기 바랍니다. 꽃 장식이 많은 의류는 열과 마찰, 과도한 " +
+      "세탁에 의해 손상될 수 있으므로 섬세한 관리가 필요합니다.",
+  },
+  "Blooming Garden Leg Warmer": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "핸드메이드 크로셰 플라워 모티프와 니트 구조를 결합하여 제작된 레그워머입니다. 다양한 크기와 " +
+      "컬러의 꽃 장식이 입체적으로 배치되어 드레스와 자연스럽게 연결되는 하나의 조형적 오브제로 " +
+      "기능합니다.",
+    care:
+      "드라이클리닝을 권장하며, 착용 시 꽃 장식 부분이 날카로운 물체에 걸리지 않도록 주의해 주세요. " +
+      "세탁 시 강한 비틀기나 탈수는 형태 변형을 유발할 수 있습니다. 보관 시에는 평평하게 접어 보관하는 " +
+      "것을 권장합니다. 크로셰 장식은 늘어남을 방지하기 위해 접어서 보관하는 것이 좋습니다.",
+  },
+  "Blooming Garden Heels": {
+    ...SHOE_INFO,
+    material:
+      "부츠 베이스 위에 핸드메이드 크로셰 플라워 모티프를 입체적으로 부착하여 제작되었습니다. 신발과 " +
+      "크로셰 장식이 결합된 구조로 Blooming Garden 특유의 화려하고 조형적인 실루엣을 완성합니다.",
+    care:
+      "부드러운 천으로 오염 부위를 가볍게 닦아 관리해 주세요. 장식 부분에 직접적인 물 세척은 피하시고, " +
+      "비나 눈에 젖었을 경우 통풍이 잘 되는 그늘에서 충분히 건조해 주세요. 꽃 장식 부분에 과도한 " +
+      "압력이 가해지지 않도록 주의해 주시기 바랍니다.",
+  },
+  "Bloom Tailored Jacket": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "테일러드 수트 원단, 핸드메이드 크로셰 플라워 모티프, 입체 플라워 아플리케 디테일, 시어 러플 " +
+      "커프스를 사용하여 제작되었습니다. 구조적인 재킷 실루엣 위에 수작업 꽃 장식이 유기적으로 배치되어 " +
+      "Bloom Tailored Edition 특유의 우아하면서도 조형적인 분위기를 완성합니다.",
+    care:
+      "제품의 형태와 장식을 오래 유지하기 위해 드라이클리닝을 권장합니다. 크로셰 플라워와 아플리케 " +
+      "장식 부분에 강한 마찰이나 압력을 가하지 마시고, 보관 시에는 넓은 옷걸이에 걸어 형태를 유지해 " +
+      "주세요. 직사광선과 고온 환경은 변색 및 장식 손상의 원인이 될 수 있으므로 피해주시기 바랍니다. " +
+      "입체 장식이 있는 의류는 일반 세탁 시 형태가 변형될 수 있어 전문 세탁 관리가 권장됩니다.",
+  },
+  "Bloom Tailored Pants": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "테일러드 수트 원단과 핸드메이드 크로셰 레이스 모티프를 사용하여 제작되었습니다. 여유로운 와이드 " +
+      "실루엣과 밑단의 꽃 장식이 조화를 이루며, 움직임에 따라 섬세한 디테일이 드러나는 것이 특징입니다.",
+    care:
+      "드라이클리닝을 권장합니다. 밑단의 크로셰 장식이 눌리거나 접히지 않도록 보관해 주세요. 착용 " +
+      "후에는 통풍이 잘 되는 곳에서 충분히 환기한 뒤 보관하는 것이 좋으며, 스팀 사용 시에는 장식 " +
+      "부위에 직접적인 열이 닿지 않도록 주의해 주시기 바랍니다.",
+  },
+  "Bloom Tailored Bag": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "가방 전면에 핸드메이드 크로셰 플라워 모티프와 프린지 디테일을 적용하여 제작되었습니다. 정제된 " +
+      "구조의 백 디자인과 유기적인 꽃 장식이 대비를 이루며 컬렉션의 핵심 아이덴티티를 보여줍니다.",
+    care:
+      "오염 발생 시 부드러운 천으로 가볍게 닦아 관리해 주세요. 물세탁은 권장하지 않으며, 꽃 장식 " +
+      "부분에 과도한 마찰이나 압력이 가해지지 않도록 주의해 주시기 바랍니다. 사용하지 않을 때는 내부 " +
+      "충전재를 넣어 형태를 유지한 상태로 보관하는 것을 권장합니다.",
+  },
+  "Bloom Tailored Heels": {
+    ...SHOE_INFO,
+    material:
+      "슈즈 바디와 동일한 톤의 크로셰 플라워 모티프를 적용하여 제작되었습니다. 우아한 포인티드 토 " +
+      "실루엣과 섬세한 꽃 장식이 결합되어 룩 전체를 하나의 완성된 정원처럼 연결합니다.",
+    care:
+      "부드러운 천으로 오염 부위를 가볍게 닦아 관리해 주세요. 물에 장시간 노출되는 것을 피하고, 비에 " +
+      "젖었을 경우 통풍이 잘 되는 그늘에서 자연 건조해 주세요. 꽃 장식 부분은 마찰에 의해 손상될 수 " +
+      "있으므로 보관 시 개별 더스트백 사용을 권장합니다.",
+  },
+  "Soft Reverie Top": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "은은한 광택감을 지닌 폴리에스터 새틴 원단과 섬세한 크로셰 니트 소재를 함께 사용하여 " +
+      "제작되었습니다. 부드러운 촉감과 가벼운 착용감이 특징이며, 서로 다른 소재가 조화를 이루어 우아한 " +
+      "실루엣을 완성합니다.",
+    care:
+      "드라이클리닝을 권장합니다. 크로셰 조직은 마찰에 의해 늘어날 수 있으므로 착용 및 보관 시 주의해 " +
+      "주세요. 세탁이 필요한 경우 차가운 물에서 손세탁 후 평평한 곳에 눕혀 자연 건조해 주세요. " +
+      "직사광선 노출은 피해 주세요.",
+  },
+  "Soft Reverie Pants": {
+    sizeTable: DEFAULT_INFO.sizeTable,
+    material:
+      "고밀도 폴리에스터 새틴 원단으로 제작되어 자연스러운 드레이프와 은은한 광택감을 제공합니다. " +
+      "가볍고 부드러운 착용감이 특징이며 움직임에 따라 우아한 실루엣이 연출됩니다.",
+    care:
+      "드라이클리닝을 권장합니다. 장시간 접어 보관할 경우 주름이 발생할 수 있으므로 옷걸이에 걸어 " +
+      "보관해 주세요. 다림질 시에는 반드시 낮은 온도에서 천을 덧대어 사용해 주세요.",
+  },
+  // 다른 시즌 신발류 — 소재·관리 원문은 아직 없어 기본값을 쓰고, 사이즈만 신발용으로 바꾼다
+  "Mirage Boots":          { ...DEFAULT_INFO, sizeTable: undefined, ...SHOE_INFO },
+  "Bloom Shoes":           { ...DEFAULT_INFO, sizeTable: undefined, ...SHOE_INFO },
+  "Ribbon Doll Shoes":     { ...DEFAULT_INFO, sizeTable: undefined, ...SHOE_INFO },
+  "Office Contrast Heels": { ...DEFAULT_INFO, sizeTable: undefined, ...SHOE_INFO },
+  "Tundra Boots":          { ...DEFAULT_INFO, sizeTable: undefined, ...SHOE_INFO },
+
+  "Soft Reverie Slippers": {
+    ...SHOE_INFO,
+    material:
+      "새틴 텍스처를 적용한 합성피혁 소재와 리본 장식을 사용하여 제작되었습니다. 부드러운 광택감과 " +
+      "우아한 분위기를 동시에 표현하며, 컬렉션의 섬세한 무드를 완성합니다.",
+    care:
+      "부드러운 천으로 오염 부위를 가볍게 닦아 관리해 주세요. 물에 장시간 노출되는 것을 피하고, 젖었을 " +
+      "경우 통풍이 잘 되는 그늘에서 자연 건조해 주세요. 형태 유지를 위해 슈즈 전용 더스트백 또는 박스에 " +
+      "보관하는 것을 권장합니다.",
   },
 };
 
@@ -290,6 +513,39 @@ function SizeTable({ rows }: { rows: SizeRow[] }) {
             <td style={cell}>{r.shoulder}</td>
             <td style={cell}>{r.chest}</td>
             <td style={cell}>{r.sleeve}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// 신발용 사이즈표 — 사이즈(mm) / 발길이 / EU
+function ShoeSizeTable({ rows }: { rows: ShoeRow[] }) {
+  const cell: React.CSSProperties = {
+    fontFamily: FONT_KO, fontSize: "12px", letterSpacing: "-0.02em",
+    padding: "9px 4px", textAlign: "center", color: "#999",
+    borderBottom: "1px solid #f4f4f4", whiteSpace: "nowrap",
+  };
+  const head: React.CSSProperties = {
+    ...cell, color: "#666", fontWeight: 600, borderBottom: "1px solid #e6e6e6",
+  };
+
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          {["사이즈(mm)", "발길이", "EU"].map((h) => (
+            <th key={h} style={{ ...head, textAlign: h === "사이즈(mm)" ? "left" : "center" }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.size}>
+            <td style={{ ...cell, color: "#555", fontWeight: 600, textAlign: "left" }}>{r.size}</td>
+            <td style={cell}>{r.footLength}</td>
+            <td style={cell}>{r.eu}</td>
           </tr>
         ))}
       </tbody>
@@ -354,6 +610,10 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
   // 상세 컷이 등록된 상품은 지정 순서대로, 없으면 기존처럼 대표 이미지 6장
   const detailCuts = DETAIL_IMAGES[p.name];
   const thumbs = detailCuts ?? [p.image, p.image, p.image, p.image, p.image, p.image];
+
+  // 상품 정보 — 신발류는 사이즈 버튼(230~270)과 표가 다르다
+  const info = PRODUCT_INFO[p.name] ?? DEFAULT_INFO;
+  const sizeOptions = info.sizes ?? SIZES;
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [mainImg, setMainImg] = useState(thumbs[0]);
@@ -562,7 +822,7 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
             SIZE
           </p>
           <div style={{ display: "flex", gap: "10px", marginBottom: "28px", flexWrap: "wrap" }}>
-            {SIZES.map((size) => (
+            {sizeOptions.map((size) => (
               <button
                 key={size}
                 onClick={() => setSelectedSize(size)}
@@ -639,7 +899,10 @@ function ProductDetailModal({ p, onClose, onAddToCart }: { p: Product; onClose: 
               },
               {
                 title: "사이즈",
-                body: <SizeTable rows={(PRODUCT_INFO[p.name] ?? DEFAULT_INFO).sizeTable!} />,
+                // 신발류는 mm 사이즈표, 의류는 총장/어깨/가슴/소매 표
+                body: info.shoeTable
+                  ? <ShoeSizeTable rows={info.shoeTable} />
+                  : <SizeTable rows={info.sizeTable ?? DEFAULT_INFO.sizeTable!} />,
               },
               {
                 title: "소재 및 관리",
