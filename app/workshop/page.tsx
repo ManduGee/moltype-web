@@ -29,49 +29,49 @@ const SESSIONS: Session[] = [
   {
     name: "CROCHET TATTOO WORKSHOP",
     subtitle: "크로셰 타투 워크숍",
-    body: "옷이 아닌 몸 가까이에 뜨개 조각을 얹어보는 체험입니다.\n어깨, 손목, 목, 신발 위 등 원하는 위치에 크로셰 피스를 배치해 나만의 탈부착 바디 장식을 완성합니다.",
+    body: "옷이 아닌 몸 가까이에 뜨개 조각을 얹어보는 체험입니다.\n어깨, 손목, 목, 신발 위 등 원하는 위치에 크로셰 피스를 배치해\n나만의 탈부착 바디 장식을 완성합니다.",
     overlayColor: COLORS.pink,
-    image: "/Moltype_Workshop_01.png",
+    image: "/Workshop_03.png",
     startImgIdx: 0,
   },
   {
     name: "PATCH PLACEMENT LAB",
     subtitle: "패치 플레이스먼트 랩",
-    body: "MOLTYPE의 패치와 뜨개 조각을 옷 위에 직접 배치해보는 워크숍입니다.\n같은 패치라도 위치에 따라 달라지는 옷의 인상을 실험하고, 자신만의 방식으로 의류를 커스터마이징합니다.",
+    body: "MOLTYPE의 패치와 뜨개 조각을 옷 위에 직접 배치해보는 워크숍입니다.\n같은 패치라도 위치에 따라 달라지는 옷의 인상을 실험하고,\n자신만의 방식으로 의류를 커스터마이징합니다.",
     overlayColor: COLORS.green,
-    image: "/Moltype_Workshop_02.png",
+    image: "/Worksop_04.png",
     startImgIdx: 1,
   },
   {
     name: "UNFINISHED REPAIR CLUB",
     subtitle: "언피니시드 리페어 클럽",
-    body: "낡거나 밋밋한 옷을 뜨개, 스티치, 매듭, 프린지로 새롭게 수선하는 체험입니다.\n결함을 숨기기보다 드러내며, 불완전함을 디자인 요소로 바꾸는 MOLTYPE의 태도를 경험합니다.",
+    body: "낡거나 밋밋한 옷을 뜨개, 스티치, 매듭, 프린지로 새롭게 수선하는 체험입니다.\n결함을 숨기기보다 드러내며, 불완전함을 디자인 요소로 바꾸는\nMOLTYPE의 태도를 경험합니다.",
     overlayColor: COLORS.pink,
-    image: "/Moltype_workshop_03.png",
+    image: "/Workshop_05.png",
     startImgIdx: 2,
   },
   {
     name: "CROCHET SURFACE SAMPLING",
     subtitle: "크로셰 서피스 샘플링",
-    body: "꽃, 뭉치, 그물, 프린지, 레이스 등 다양한 뜨개 표면을 작은 샘플로 만들어보는 워크숍입니다.\n뜨개를 단순한 장식이 아닌 새로운 의류 표면으로 이해하고 실험합니다.",
+    body: "꽃, 뭉치, 그물, 프린지, 레이스 등 다양한 뜨개 표면을\n작은 샘플로 만들어보는 워크숍입니다.\n뜨개를 단순한 장식이 아닌 새로운 의류 표면으로 이해하고 실험합니다.",
     overlayColor: COLORS.green,
-    image: "/Moltype_workshop_04.png",
+    image: "/Workshop_06.png",
     startImgIdx: 3,
   },
   {
     name: "THREAD CHARM MAKING",
     subtitle: "스레드 참 메이킹",
-    body: "남은 실, 비즈, 미니 패치, 작은 뜨개 조각을 이용해 가방이나 신발, 지퍼에 달 수 있는 참을 만드는 체험입니다.\nMOLTYPE의 감각을 작은 오브제로 가볍게 가져갈 수 있습니다.",
+    body: "남은 실, 비즈, 미니 패치, 작은 뜨개 조각을 이용해\n가방이나 신발, 지퍼에 달 수 있는 참을 만드는 체험입니다.\nMOLTYPE의 감각을 작은 오브제로 가볍게 가져갈 수 있습니다.",
     overlayColor: COLORS.pink,
-    image: "/Moltype_workshop_05.png",
+    image: "/workshop_07.png",
     startImgIdx: 4,
   },
   {
     name: "YARN PORTRAIT BOOTH",
     subtitle: "얀 포트레이트 부스",
-    body: "직접 만든 패치, 참, 크로셰 피스를 착용하고 MOLTYPE 무드의 포토부스에서 촬영하는 체험입니다.\n결과물은 브랜드 매거진처럼 편집된 개인 포트레이트 카드로 완성됩니다.",
+    body: "직접 만든 패치, 참, 크로셰 피스를 착용하고\nMOLTYPE 무드의 포토부스에서 촬영하는 체험입니다.\n결과물은 브랜드 매거진처럼 편집된 개인 포트레이트 카드로 완성됩니다.",
     overlayColor: COLORS.green,
-    image: "/Moltype_workshop_06.png",
+    image: "/Workshop_08.png",
     startImgIdx: 5,
   },
 ];
@@ -221,12 +221,12 @@ function DatePicker({ value, onChange, inputStyle, labelStyle }: {
 }
 
 const WORKSHOP_IMAGES = [
-  "/Moltype_Workshop_01.png",
-  "/Moltype_Workshop_02.png",
-  "/Moltype_workshop_03.png",
-  "/Moltype_workshop_04.png",
-  "/Moltype_workshop_05.png",
-  "/Moltype_workshop_06.png",
+  "/Workshop_03.png",
+  "/Worksop_04.png",
+  "/Workshop_05.png",
+  "/Workshop_06.png",
+  "/workshop_07.png",
+  "/Workshop_08.png",
 ];
 
 function ImageLightbox({ startIndex, onClose }: { startIndex: number; onClose: () => void }) {
@@ -473,7 +473,7 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
               <label style={labelStyle}>Name</label>
               <input
                 style={inputStyle}
-                placeholder="JAMES"
+                placeholder="YEJIN"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
@@ -676,7 +676,7 @@ function SessionCard({ s, idx, onClick }: { s: Session; idx: number; onClick: ()
           </h3>
           <p style={{
             fontFamily: FONT_KO, fontWeight: 400,
-            fontSize: "16px", lineHeight: "1.6", color: "rgba(255,255,255,0.9)",
+            fontSize: "16px", lineHeight: "1.45", color: "rgba(255,255,255,0.9)",
             margin: 0, wordBreak: "keep-all", whiteSpace: "pre-line",
           }}>
             {s.body}
@@ -687,110 +687,48 @@ function SessionCard({ s, idx, onClick }: { s: Session; idx: number; onClick: ()
   );
 }
 
-// 세로 스티치 라인: 시작 정원을 클릭하면 점(정원)이 라인을 따라 내려가고, 그 뒤를 핑크 실이 끝까지 채운다.
-// 도착하면 BOOK A SESSION 버튼이 나타난다. (uniform scale로 원이 찌그러지지 않게 preserveAspectRatio=meet 사용)
-const STITCH_PATH = "M50 30 C 12 78, 88 108, 50 160 C 12 212, 88 242, 50 300 C 12 358, 88 388, 50 446 C 30 500, 50 524, 50 578";
 
-function StitchLine({ onBook }: { onBook: () => void }) {
-  const pathRef = useRef<SVGPathElement>(null);
-  const rafRef = useRef<number | null>(null);
-  const [started, setStarted] = useState(false);
-  const [done, setDone] = useState(false);
-  const [dot, setDot] = useState({ x: 50, y: 30 });  // 이동하는 정원 위치 (viewBox 좌표)
-  const [pinkD, setPinkD] = useState("");            // 원이 지나온 좌표를 그대로 그린 핑크 라인
+// 히어로 이미지 — 마우스를 올리면 그 자리에서 모션이 재생되고, 벗어나면 이미지로 돌아간다.
+// 영상은 무거우니 처음에는 메타데이터만 받고, 호버한 뒤부터 실제로 불러온다.
+function HoverVideo({ image, video, alt }: { image: string; video: string; alt: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hover, setHover] = useState(false);
+  const [ready, setReady] = useState(false); // 첫 프레임이 그려졌는지 — 그 전엔 검은 판이라 이미지를 덮지 않는다
 
   useEffect(() => {
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, []);
-
-  const run = () => {
-    const p = pathRef.current;
-    if (!p || started) return;
-    setStarted(true);
-    const len = p.getTotalLength();
-    const dur = 2200;
-    const t0 = performance.now();
-    const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-    const frame = (now: number) => {
-      const raw = Math.min((now - t0) / dur, 1);
-      const t = ease(raw);
-      const dist = t * len;
-      const pt = p.getPointAtLength(dist);
-      setDot({ x: pt.x, y: pt.y });
-      // 시작점~현재 원 위치까지 실제 좌표를 샘플링해 폴리라인으로 그린다 → 원과 어긋날 수 없음
-      const steps = Math.max(2, Math.ceil(dist / 4));
-      let d = "";
-      for (let i = 0; i <= steps; i++) {
-        const q = p.getPointAtLength((dist * i) / steps);
-        d += (i === 0 ? "M" : "L") + q.x.toFixed(2) + " " + q.y.toFixed(2);
-      }
-      setPinkD(d);
-      if (raw < 1) rafRef.current = requestAnimationFrame(frame);
-      else setDone(true);
-    };
-    rafRef.current = requestAnimationFrame(frame);
-  };
+    const v = videoRef.current;
+    if (!v) return;
+    if (hover) v.play().catch(() => {});
+    else { v.pause(); v.currentTime = 0; }
+  }, [hover]);
 
   return (
-    <div style={{ flexShrink: 0, width: "200px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <svg
-        viewBox="0 0 100 600" fill="none" preserveAspectRatio="xMidYMid meet"
-        style={{ flex: 1, width: "100%", minHeight: 0, display: "block", cursor: started ? "default" : "pointer" }}
-        onClick={run}
-      >
-        {/* 미완성 점선 스티치 가이드 */}
-        <path
-          ref={pathRef} d={STITCH_PATH}
-          stroke="#3f3f3f" strokeWidth="1.5" strokeDasharray="7 9" strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        {/* 핑크 실 — 원이 지나온 좌표를 그대로 그린 라인이라 원과 항상 정확히 붙어있다 */}
-        {pinkD && (
-          <path
-            d={pinkD}
-            stroke={COLORS.pink} strokeWidth="2.5" strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-        {/* 시작 전 클릭 유도 펄스 링 */}
-        {!started && (
-          <motion.circle
-            cx={dot.x} cy={dot.y} r="10"
-            fill="none" stroke={COLORS.pink} strokeWidth="1.5"
-            vectorEffect="non-scaling-stroke"
-            animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.35, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformOrigin: `${dot.x}px ${dot.y}px` }}
-          />
-        )}
-        {/* 라인을 따라 이동하는 정원 — 클릭 전 회색, 클릭 시 핑크로 변하며 이동 (uniform scale라 항상 원형) */}
-        <circle cx={dot.x} cy={dot.y} r="6" fill={started ? COLORS.pink : "#3f3f3f"} vectorEffect="non-scaling-stroke" />
-      </svg>
-      <motion.button
-        initial={false}
-        animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        onClick={done ? onBook : undefined}
-        onMouseEnter={(e) => { if (done) e.currentTarget.style.background = COLORS.pink; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000" }}
+    >
+      <img src={image} alt={alt}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      <video
+        ref={videoRef}
+        src={video}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        onPlaying={() => setReady(true)}
+        // 브라우저가 리소스를 아끼려고 멈추더라도, 마우스가 올라가 있으면 다시 재생한다
+        onPause={() => { if (hover) videoRef.current?.play().catch(() => {}); }}
+        onTimeUpdate={() => { if (!ready) setReady(true); }}
         style={{
-          background: "transparent",
-          border: `1.5px solid ${COLORS.pink}`,
-          borderRadius: "999px",
-          color: "#ffffff",
-          fontFamily: FONTS.condensed, fontWeight: 700,
-          fontSize: "14px", letterSpacing: "0.04em", textTransform: "uppercase",
-          padding: "12px 24px",
-          cursor: done ? "pointer" : "default",
-          pointerEvents: done ? "auto" : "none",
-          flexShrink: 0,
-          whiteSpace: "nowrap",
-          marginTop: "12px",
-          transition: "background 0.25s ease",
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%", objectFit: "cover",
+          opacity: hover && ready ? 1 : 0,
+          transition: "opacity 0.45s ease",
+          pointerEvents: "none",
         }}
-      >
-        BOOK A SESSION
-      </motion.button>
+      />
     </div>
   );
 }
@@ -818,7 +756,7 @@ export default function WorkshopPage() {
       <section style={{
         minHeight: "100vh",
         display: "flex", flexDirection: "column", justifyContent: "center", gap: "24px",
-        padding: "120px 56px 200px",
+        padding: "160px 56px 120px",
         boxSizing: "border-box",
         position: "relative", zIndex: 2,
       }}>
@@ -843,13 +781,12 @@ export default function WorkshopPage() {
             transition={{ duration: 1.1, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ width: "52%", overflow: "hidden", aspectRatio: "16 / 10" }}
           >
-            <img src="/workshop_title_01.png" alt="Workshop"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <HoverVideo image="/Workshop_01.png" video="/workshop_01.mp4" alt="Workshop" />
           </motion.div>
 
           {/* 우측 영역: 텍스트 + 이미지2(하단 정렬) + 세로 스티치/CTA — 이미지1 높이에 맞춰 전체를 채운다 */}
           <div style={{
-            position: "absolute", top: 0, bottom: 0, left: "55%", right: "56px",
+            position: "absolute", top: 0, bottom: 0, left: "55%", right: 0,
             display: "flex", gap: "40px",
           }}>
             {/* 좌: 텍스트(위) + 이미지2(아래, 남은 공간을 꽉 채우며 이미지1과 하단 라인 정렬) */}
@@ -857,25 +794,18 @@ export default function WorkshopPage() {
               flex: 1, minWidth: 0,
               display: "flex", flexDirection: "column",
             }}>
-              <div style={{ maxWidth: "480px" }}>
+              <div style={{ maxWidth: "640px" }}>
                 <h2 style={{
                   fontFamily: FONTS.condensed, fontWeight: 700,
                   fontSize: "40px",
                   letterSpacing: "-0.03em", textTransform: "uppercase",
                   color: "#ffffff", margin: "-4px 0 20px", lineHeight: 1.1,
                 }}>
-                  EXPERIENCE ON THE FLY,<br />TURNING UNFINISHED<br />INTO FINISHED!
+                  <span style={{ whiteSpace: "nowrap" }}>EXPERIENCE ON THE FLY,</span><br />
+                  <span style={{ whiteSpace: "nowrap" }}>TURNING UNFINISHED INTO FINISHED!</span>
                 </h2>
-                <p style={{ fontFamily: FONTS.akkurat, fontSize: "15px", lineHeight: "1.5", letterSpacing: "-0.01em", color: "#888888", margin: "0 0 14px" }}>
-                  MOLTYPE&apos;S WORKSHOP IS OPEN TO ANYONE AS LONG AS THEY MAKE AN APPOINTMENT.
-                  VISIT MOLTYPE&apos;S FLAGSHIP STORE, CHOOSE YOUR OWN UNFINISHED CLOTHING,
-                  CHOOSE THE MATERIALS TO COMPLETE, AND THEN TRY.
-                  IT IS POSSIBLE WITHOUT DIFFICULT TECHNIQUES. COMPLETE THE LAST STITCH WITH YOUR HANDS.
-                </p>
                 <p style={{ fontFamily: FONT_KO, fontWeight: 400, fontSize: "15px", lineHeight: "1.55", letterSpacing: "-0.02em", color: "#666666", margin: 0, wordBreak: "keep-all" }}>
-                  MOLTYPE의 워크샵은 예약만 한다면 누구나 이용할 수 있습니다. MOLTYPE의 플래그십
-                  스토어에 방문해서, 직접 미완성된 의류를 고르고 완성하기 위한 재료를 고른 다음,
-                  완성해볼 수 있습니다. 어려운 기술 없이도 가능합니다. 여러분의 손으로 마지막 한 코를 완성해보세요.
+                  MOLTYPE의 워크샵은 예약만 한다면 누구나 이용할 수 있습니다. MOLTYPE의 플래그십 스토어에 방문해서, 직접 미완성된 의류를 고르고 완성하기 위한 재료를 고른 다음, 완성해볼 수 있습니다. 어려운 기술 없이도 가능합니다. 여러분의 손으로 마지막 한 코를 완성해보세요.
                 </p>
               </div>
 
@@ -886,19 +816,16 @@ export default function WorkshopPage() {
                 transition={{ duration: 1.1, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
                 style={{ flex: 1, minHeight: "180px", marginTop: "28px", overflow: "hidden" }}
               >
-                <img src="/workshop_title_02.png" alt="Workshop detail"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <HoverVideo image="/Workshop_02.png" video="/workshop_02.mp4" alt="Workshop detail" />
               </motion.div>
             </div>
 
-            {/* 우: 세로 스티치 라인 + 시작 정원(클릭 시 라인을 따라 이동하며 핑크로 채워짐) + CTA */}
-            <StitchLine onBook={() => document.getElementById("sessions-section")?.scrollIntoView({ behavior: "smooth" })} />
           </div>
         </div>
       </section>
 
       {/* Sessions section — Nudake style */}
-      <section id="sessions-section" style={{ padding: "160px 56px 80px", position: "relative", zIndex: 2 }}>
+      <section id="sessions-section" style={{ padding: "120px 56px 80px", position: "relative", zIndex: 2 }}>
         <motion.h2 style={{
           fontFamily: FONTS.condensed, fontWeight: 700,
           fontSize: "clamp(16px, 2vw, 28px)",

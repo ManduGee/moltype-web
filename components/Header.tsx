@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FONTS } from "@/lib/assets";
+import { SEASON_PRODUCTS, SEASON_LABELS } from "@/lib/products";
 
 const NAV_ITEMS = [
   { label: "BRAND STORY",    href: "/brand-story" },
@@ -140,34 +142,8 @@ export default function Header() {
           <BagIcon />
         </button>
 
-        {/* 검색 드롭다운 */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18 }}
-              style={{
-                position: "absolute", top: `${HEADER_H - 8}px`, right: 0,
-                width: "280px", background: "#0a0a0a",
-                border: "1px solid rgba(255,255,255,0.15)",
-                padding: "14px 16px",
-              }}
-            >
-              <input
-                autoFocus
-                placeholder="검색어를 입력하세요"
-                style={{
-                  width: "100%", background: "none", border: "none",
-                  borderBottom: "1px solid rgba(255,255,255,0.3)",
-                  color: "#fff", fontSize: "13px", padding: "6px 0",
-                  fontFamily: FONTS.body, outline: "none",
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* 검색 — 화면 전체를 덮는 패널로 연다 */}
+        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
 
         {/* 장바구니 드롭다운 */}
         <AnimatePresence>
@@ -199,9 +175,146 @@ export default function Header() {
   );
 }
 
-function SearchIcon() {
+// 검색 패널 — 헤더 바로 아래부터 화면을 덮는다.
+// 입력 전에는 인기 검색어(대표 상품)를 보여주고, 입력하면 그 자리에서 상품을 걸러 보여준다.
+const POPULAR = [
+  "Frozen Bloom Dress",
+  "Blooming Garden Dress",
+  "Tundra Fur Jacket",
+  "Bloom Veil",
+  "Pastel Grung Knit",
+];
+
+type Hit = { name: string; image: string; season: string };
+
+const ALL_PRODUCTS: Hit[] = SEASON_PRODUCTS.flatMap((list, i) =>
+  list.map((p) => ({ name: p.name, image: p.image, season: SEASON_LABELS[i] })),
+);
+
+function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [query, setQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // 열릴 때마다 입력을 비우고, 열려 있는 동안은 뒤 페이지 스크롤을 잠근다
+  useEffect(() => {
+    if (!open) { setQuery(""); return; }
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
+  if (!mounted) return null;
+
+  const q = query.trim().toLowerCase();
+  const hits = q
+    ? ALL_PRODUCTS.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 10)
+    : POPULAR.map((n) => ALL_PRODUCTS.find((p) => p.name === n)).filter(Boolean) as Hit[];
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+          style={{
+            position: "fixed",
+            // 헤더(80px 고정)는 페이지 줌을 상쇄하고 있어, 줌이 걸린 좌표계에서는 그만큼 환산해 내려야 한다
+            top: `calc(${HEADER_H}px * var(--inv-zoom, 1))`,
+            left: 0, right: 0,
+            // 화면을 다 덮지 않고 절반 정도만 — 아래로는 페이지가 그대로 보인다
+            height: `calc(50vh * var(--inv-zoom, 1))`,
+            background: "#ffffff",
+            zIndex: 140,
+            overflowY: "auto",
+          }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "relative", padding: "40px 56px 48px" }}>
+            {/* 닫기 */}
+            <button
+              onClick={onClose}
+              aria-label="Close search"
+              style={{
+                position: "absolute", top: 28, right: 48,
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: "20px", color: "#111111", lineHeight: 1, padding: 4,
+              }}
+            >
+              ✕
+            </button>
+
+            {/* 검색 입력 — 가운데 정렬 */}
+            <div style={{
+              maxWidth: "860px", margin: "0 auto",
+              display: "flex", alignItems: "center", gap: "12px",
+              borderBottom: "1px solid #111111", paddingBottom: "10px",
+            }}>
+              <SearchIcon color="#111111" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="검색어를 입력하세요"
+                style={{
+                  flex: 1, background: "none", border: "none", outline: "none",
+                  fontFamily: FONTS.body, fontSize: "15px", color: "#111111",
+                }}
+              />
+            </div>
+
+            {/* 결과 / 인기 검색어 */}
+            <div style={{ maxWidth: "860px", margin: "40px auto 0" }}>
+              <p style={{
+                fontFamily: FONTS.body, fontSize: "13px", color: "#111111",
+                margin: "0 0 24px",
+              }}>
+                {q ? (hits.length ? "검색 결과" : "검색 결과가 없습니다") : "인기 검색어"}
+              </p>
+
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+                gap: "24px",
+              }}>
+                {hits.map((p) => (
+                  <Link
+                    key={p.name}
+                    href={`/product?season=${encodeURIComponent(p.season)}&product=${encodeURIComponent(p.name)}`}
+                    onClick={onClose}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
+                      <Image src={p.image} alt={p.name} fill sizes="160px" style={{ objectFit: "contain" }} />
+                    </div>
+                    <p style={{
+                      fontFamily: FONTS.body, fontSize: "12px", color: "#111111",
+                      margin: "14px 0 0", lineHeight: 1.4,
+                    }}>
+                      {p.name}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
+function SearchIcon({ color = "#fff" }: { color?: string }) {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round">
       <circle cx="11" cy="11" r="7" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>

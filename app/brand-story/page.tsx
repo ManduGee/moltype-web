@@ -54,7 +54,9 @@ function HeroSection() {
       {/* full-bleed hero video */}
       <div style={{
         width: "100%",
-        height: "90vh",
+        // 페이지에 zoom이 걸려 있어 vh를 그대로 쓰면 실제 화면보다 작아진다. 줌을 상쇄해
+        // 헤더(80px)를 뺀 화면 높이를 정확히 채운다.
+        height: "calc((100vh - 80px) * var(--inv-zoom, 1))",
         backgroundColor: "#000000",
         display: "flex",
         flexDirection: "column",
@@ -69,7 +71,7 @@ function HeroSection() {
           muted
           playsInline
           onEnded={handleEnded}
-          style={{ maxWidth: "100%", maxHeight: "92%", objectFit: "contain", display: "block" }}
+          style={{ width: "100%", height: "92%", objectFit: "contain", display: "block" }}
         />
 
         {/* Scroll to Explore — 하단 검정 여백 안에 배치 */}
@@ -129,8 +131,10 @@ function HeroSection() {
         </p>
         <p style={{
           fontFamily: FONTS.body,
-          fontSize: "12px",
-          lineHeight: "1.9",
+          // 워크숍 히어로의 한글 본문과 같은 크기
+          fontSize: "15px",
+          lineHeight: "1.55",
+          letterSpacing: "-0.02em",
           color: "#9a9a9a",
           margin: 0,
           whiteSpace: "pre-line",
@@ -284,7 +288,8 @@ function ConceptCardsSection() {
 
   return (
     <>
-      <div style={{ width: "100vw", marginBottom: "0", aspectRatio: "1920 / 35", marginLeft: "calc(-50vw + 50%)" }}>
+      {/* zoom이 걸린 페이지에서 100vw는 레이아웃 폭(1920)이 아니라 창 폭으로 계산돼 줄이 짧아진다 */}
+      <div style={{ width: "100%", marginBottom: "0", aspectRatio: "1920 / 35" }}>
         <img src={PATTERNS.checkPattern} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
 
@@ -300,7 +305,7 @@ function ConceptCardsSection() {
         ))}
       </section>
 
-      <div style={{ width: "100vw", marginBottom: "0", aspectRatio: "1920 / 38", marginLeft: "calc(-50vw + 50%)" }}>
+      <div style={{ width: "100%", marginBottom: "0", aspectRatio: "1920 / 38" }}>
         <img src={PATTERNS.checkPattern} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
     </>

@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import Header, { HEADER_H } from "./Header";
+import Footer from "./Footer";
 
 interface Props {
   children: ReactNode;
@@ -20,6 +21,7 @@ export default function PageLayout({ children }: Props) {
       >
         {children}
       </motion.main>
+      <Footer />
     </div>
   );
 }

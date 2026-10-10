@@ -1,453 +1,504 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { FONTS } from "@/lib/assets";
-import { HEADER_H } from "@/components/Header";
 
-// 플로팅 모션 갤러리 — Mobjournal 레퍼런스.
-// 작은 모션 카드 10장이 화면 가장자리에 흩어져 떠 있고, 가운데엔 큰 카피가 있다.
-// 빈 곳을 더블클릭하면 첫 카드가 중앙으로 날아와 크게 재생되고, 휠·방향키·클릭으로 넘길 때마다
-// 지금 카드는 제자리로 돌아가고 다음 카드가 날아온다. 다시 더블클릭(또는 Esc)하면 원래대로.
-//   중앙 카드 클릭     → 다음 카드
-//   중앙 카드 더블클릭 → 이 모션과 이어지는 상품 상세로 이동
-//   우상단 버튼        → 소리 켜기/끄기
+// 모션 갤러리 — 흩뿌려진 카드 대신 좌우로 번갈아 놓이는 에디토리얼 레이아웃.
+// 한 줄(=한 모션)마다 한쪽엔 모션, 반대쪽엔 그 모션의 설명과 룩을 이루는 아이템들이 놓인다.
+// 1·3번째 줄은 모션이 왼쪽, 2·4번째 줄은 모션이 오른쪽.
+//   모션 클릭      → 소리 켜기/끄기
+//   아이템 클릭    → 그 상품 상세로 이동
+//   VIEW THE LOOK  → 해당 시즌의 대표 상품으로 이동
 //
-// 파일: public/Main_Motion/Image_<id>.png(썸네일) · Motion_<id>.mp4(모션). 현재 5쌍(01·02·04·05·06).
-const TILES = ["01", "02", "04", "05", "06"];
+// 파일: public/Main_Motion/Image_<id>.png(썸네일) · Motion_<id>.mp4(모션).
 
-// 각 모션이 이어지는 상품. (/product 는 이 두 쿼리를 읽어 해당 시즌·상품을 바로 펼친다)
-// 썸네일 내용 기준으로 연결했다 — 01 설원+레그워머, 02 데이지 속 얼굴, 04 핑크 크로셰 드레스,
-// 05 민트 수트, 06 핑크 퍼 코트+레이어드 스커트
-const TILE_PRODUCT: Record<string, { season: string; product: string }> = {
-  "01": { season: "Winter", product: "Frozen Bloom Dress" },
-  "02": { season: "Summer", product: "Bloom Veil" },
-  "04": { season: "Spring", product: "Blooming Garden Dress" },
-  "05": { season: "Spring", product: "Bloom Tailored Jacket" },
-  "06": { season: "Winter", product: "Tundra Fur Jacket" },
-};
-
-// 갤러리 섹션의 앵커. 상품 페이지에서 뒤로 돌아왔을 때 여기로 곧장 스크롤한다.
 export const GALLERY_ID = "motion-gallery";
 
 // 상품으로 나갈 때 남기는 표시. 홈이 이 값을 보면 로고 인트로·뜨개 체험을 건너뛰고
 // 갤러리로 바로 보낸다(읽은 쪽에서 지운다 — 그냥 새로고침하면 다시 인트로부터).
 export const RETURN_TO_GALLERY_KEY = "moltype:return-to-gallery";
 
-const productHref = (id: string) => {
-  const m = TILE_PRODUCT[id];
-  if (!m) return "/product";
-  return `/product?season=${encodeURIComponent(m.season)}&product=${encodeURIComponent(m.product)}`;
+type LookItem = { name: string; image: string };
+type Look = {
+  video: string;     // 모션 파일 경로
+  poster?: string;   // 재생 전 자리를 지킬 썸네일 (없으면 검은 화면)
+  season: string;    // /product 의 시즌 탭
+  title: string;     // 룩 이름
+  copy: string;      // 모션 설명
+  items: LookItem[]; // 이 룩을 이루는 아이템 (상품 상세로 이어진다)
 };
 
-// 카드 10장 — 5개 모션 × 2. 화면 가장자리를 따라 흩어 놓고 가운데(카피 자리)는 비운다.
-//   x, y : 화면 안 위치(%), 카드 중심 기준
-//   w    : 카드 폭(vw). 레퍼런스처럼 작고 크기가 제각각이어야 한다.
-//   float: 떠다니는 주기(초)
-// 크기를 크게 벌려(4~13vw) 제각각으로 두고, 몇 장은 일부러 화면 밖으로 걸친다(x<0, x>100, y>100).
-// 윗줄은 고정 헤더(80px) 아래로, 가운데 띠(카피)는 비워 둔다.
-//   rotate: 기본 기울기(도). 진짜 카드를 흩어 놓은 것처럼 제각각. 중앙으로 날아오면 0으로 펴진다.
-const CARDS = [
-// 크기 차이는 두되(11~18vw) 작은 카드도 충분히 보이는 범위로 — 너무 작으면 존재감이 없다.
-// 위 4장 · 가운데 양옆 2장 · 아래 4장으로 나눠 상하 균형을 맞춘다. 윗줄은 헤더(80px)에 닿지 않게.
-// 모션 5개 × 2장. 같은 모션이 나란히 붙지 않게 배치했다.
-  { id: "01", x: 10,  y: 31, w: 18,  rotate: -7,  float: 8.0 },  // 큼
-  { id: "02", x: 33,  y: 22, w: 11,  rotate: -62, float: 8.8 }, // 카피 왼쪽 위 — 거의 눕힌 각도
-  { id: "04", x: 71,  y: 23, w: 10,  rotate: -22, float: 10.2 }, // 왼쪽으로 기울여 안쪽으로
-  { id: "06", x: 92,  y: 28, w: 15,  rotate: 6,   float: 9.0 },  // 큼, 오른쪽으로 잘림
-  { id: "05", x: 2,   y: 62, w: 12,  rotate: -12, float: 10.6 }, // 왼쪽으로 잘림
-  { id: "01", x: 88,  y: 58, w: 12,  rotate: -9,  float: 8.4 },
-  { id: "06", x: 16,  y: 87, w: 16,  rotate: 5,   float: 9.8 },  // 큼, 아래로 잘림
-  { id: "02", x: 36,  y: 86, w: 13.5, rotate: -20, float: 9.5 }, // 왼쪽으로 기울여 조금 크게
-  { id: "05", x: 58,  y: 90, w: 15,  rotate: 18,  float: 8.2 },  // 오른쪽으로 기울여 크게, 아래로 잘림
-  { id: "04", x: 78,  y: 80, w: 14,  rotate: 9,   float: 9.3 },
+// 아이템 썸네일은 행거컷이 아니라 상품 상세의 첫 번째 디테일 컷을 쓴다.
+const cut = (path: string) => `/Product_Detail_Cut/${path}/Product_Detail_01`;
+
+// 모션 4개 — 시즌별 대표 룩. 아이템 이름은 /product 의 상품명과 같아야 상세로 연결된다.
+const LOOKS: Look[] = [
+  {
+    video: "/Main_Motion/Motion_04.mp4",
+    poster: "/Main_Motion/Image_04.png",
+    season: "Spring",
+    title: "Blooming Garden",
+    copy:
+      "꽃이 만개한 정원의 화사함에서 영감을 받은 에디션입니다. " +
+      "다채로운 크로셰 플라워 모티프와 풍성한 니트 텍스처, 사랑스러운 컬러가 어우러져 생동감 넘치는 " +
+      "정원의 모습을 표현합니다. 손뜨개 장식과 입체적인 디테일이 조화를 이루며, 자유롭고 로맨틱한 " +
+      "분위기를 완성합니다.",
+    items: [
+      { name: "Blooming Garden Dress",      image: cut("Spring/Blooming Garden/Dress") + ".jpg" },
+      { name: "Blooming Garden Leg Warmer", image: cut("Spring/Blooming Garden/Leg Warmer") + ".jpg" },
+      { name: "Blooming Garden Heels",      image: cut("Spring/Blooming Garden/Heels") + ".jpg" },
+    ],
+  },
+  {
+    video: "/Main_Motion/Motion_02.mp4",
+    poster: "/Main_Motion/Image_02.png",
+    season: "Summer",
+    title: "Bloom Veil",
+    copy:
+      "햇살이 스며드는 여름 정원에서 영감을 받은 컬렉션입니다. " +
+      "가볍게 흩날리는 베일과 손뜨개 플라워 모티프, 투명한 파스텔 컬러가 어우러져 한여름의 꽃잎과 " +
+      "바람을 표현합니다. 섬세한 크로셰 디테일과 부드러운 시폰 소재가 조화를 이루며, 몽환적이면서도 " +
+      "로맨틱한 분위기를 완성합니다.",
+    items: [
+      { name: "Bloom Veil",  image: cut("Summer/Summer Bloom Veil/Top") + ".png" },
+      { name: "Bloom Scarf", image: cut("Summer/Summer Bloom Veil/Scrarf") + ".png" },
+      { name: "Bloom Shoes", image: cut("Summer/Summer Bloom Veil/Shoes") + ".png" },
+    ],
+  },
+  {
+    // 새로 교체한 모션 (Website_07_최종)
+    video: "/Website_07_최종.mp4",
+    season: "Winter",
+    title: "Tundra",
+    copy:
+      "광활한 설원과 혹독한 자연 속에서 발견하는 아름다움에서 영감을 받은 에디션입니다. " +
+      "포근한 퍼 텍스처와 독특한 니트 디테일, 차분하면서도 감각적인 실루엣이 어우러져 차가운 자연과 " +
+      "따뜻한 소재의 대비를 표현합니다. 풍성한 텍스처와 개성 있는 장식이 조화를 이루며, 자유롭고 " +
+      "대담한 겨울 스타일을 완성합니다.",
+    items: [
+      { name: "Tundra Fur Jacket",    image: cut("Winter/Tundra Fur Jacket") + ".png" },
+      { name: "Tundra Knit",          image: cut("Winter/Tundra /Knit") + ".jpg" },
+      { name: "Tundra Layered Skirt", image: cut("Winter/Tundra /Skirt") + ".jpg" },
+      { name: "Tundra Boots",         image: cut("Winter/Tundra /Shoes") + ".jpg" },
+    ],
+  },
+  {
+    video: "/Main_Motion/Motion_01.mp4",
+    poster: "/Main_Motion/Image_01.png",
+    season: "Winter",
+    title: "Frozen Bloom",
+    copy:
+      "얼어붙은 겨울 속에서도 피어나는 꽃에서 영감을 받은 컬렉션입니다. " +
+      "풍성한 니트 텍스처와 입체적인 크로셰 플라워 모티프가 어우러져 겨울의 차가움 속에 따뜻하고 " +
+      "낭만적인 분위기를 더합니다. 섬세한 뜨개 디테일과 유기적인 실루엣을 통해 변화와 성장의 " +
+      "아름다움을 표현합니다.",
+    items: [
+      { name: "Frozen Bloom Dress",      image: cut("Winter/Frozen Bloom/Dress") + ".png" },
+      { name: "Frozen Bloom Leg Warmer", image: cut("Winter/Frozen Bloom/Socks") + ".png" },
+      { name: "Frozen Bloom Boots",      image: cut("Winter/Frozen Bloom/Boots") + ".png" },
+    ],
+  },
 ];
-const CARD_MIN = 70;  // px
-const CARD_MAX = 420; // px
 
-const CARD_RATIO = 1445 / 1089; // 세로 / 가로 (썸네일 기준)
-// 영상 비율 캐시 — 한 번 메타데이터를 읽으면 같은 세션에서 다시 계산하지 않는다
-const VIDEO_RATIO: Record<string, number> = {};
-
-// 중앙으로 날아온 카드의 크기(화면 높이 대비)
-const FOCUS_VH = 0.9;
-
-// 휠로 넘길 때 연속 입력을 이 시간(ms) 동안 무시한다 — 한 번 굴리면 딱 한 장만
-const WHEEL_COOLDOWN = 700;
-// 클릭 vs 더블클릭 구분 대기(ms)
-const DBLCLICK_WAIT = 260;
+const productHref = (season: string, product: string) =>
+  `/product?season=${encodeURIComponent(season)}&product=${encodeURIComponent(product)}`;
 
 export default function MotionScatterGallery() {
   const router = useRouter();
-  // focus: 카드가 중앙에 와 있는 모드. current: 중앙에 온 "카드"의 인덱스(CARDS 기준).
-  // 같은 모션의 카드가 여러 장이라 모션 번호가 아니라 카드 번호를 들고 있어야,
-  // 더블클릭한 바로 그 카드가 날아온다(예전엔 같은 모션의 첫 카드가 대신 날아왔다).
-  const [focus, setFocus] = useState(false);
-  const [current, setCurrent] = useState(0);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const [soundOn, setSoundOn] = useState(false);
 
-  // 화면 크기 — 카드를 제자리에서 중앙까지 px로 옮기려면 실제 크기가 필요하다
-  const [vp, setVp] = useState({ w: 1920, h: 1080 });
-  useEffect(() => {
-    const read = () => setVp({ w: window.innerWidth, h: window.innerHeight });
-    read();
-    window.addEventListener("resize", read);
-    return () => window.removeEventListener("resize", read);
-  }, []);
-
-  // 넘기기 — 모션 순서(TILES)를 따라가되, 각 모션은 첫 번째 카드가 날아온다
-  const step = (dir: 1 | -1) =>
-    setCurrent((c) => {
-      const m = TILES.indexOf(CARDS[c].id);
-      const nextId = TILES[(m + dir + TILES.length) % TILES.length];
-      return CARDS.findIndex((card) => card.id === nextId);
-    });
-  const next = useCallback(() => step(1), []);
-  const prev = useCallback(() => step(-1), []);
-
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // 등장 — 섹션이 화면의 40% 이상 들어오면 한 번만. 카드들이 중앙 한 점에서 방사형으로
-  // 퍼져 나가 제자리를 찾고, 그 뒤에 카피가 떠오른다.
-  const revealed = useInView(sectionRef, { once: true, amount: 0.4 });
-
-  // 포커스 모드에 들어가면 섹션을 화면에 딱 맞춘다. 카드 위치는 섹션 기준이라, 섹션이
-  // 위로 조금 밀려 있으면 중앙에 온 카드의 아래가 화면 밖으로 잘린다.
-  useEffect(() => {
-    if (!focus) return;
-    sectionRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-  }, [focus]);
-
-  // 휠 — 포커스 모드에선 페이지 스크롤 대신 카드를 넘긴다(passive: false 로 막아야 한다)
-  const wheelLock = useRef(0);
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || !focus) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const now = Date.now();
-      if (now - wheelLock.current < WHEEL_COOLDOWN) return;
-      if (Math.abs(e.deltaY) < 8) return;
-      wheelLock.current = now;
-      if (e.deltaY > 0) next(); else prev();
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [focus, next, prev]);
-
-  // 방향키 / Esc
-  useEffect(() => {
-    if (!focus) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") next();
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") prev();
-      else if (e.key === "Escape") setFocus(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [focus, next, prev]);
-
-  // 중앙 카드: 클릭은 다음 카드, 더블클릭은 상품 — 첫 클릭을 잠시 기다려 구분한다
-  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (clickTimer.current) clearTimeout(clickTimer.current); }, []);
-  const onCenterClick = () => {
-    if (clickTimer.current) clearTimeout(clickTimer.current);
-    clickTimer.current = setTimeout(() => { clickTimer.current = null; next(); }, DBLCLICK_WAIT);
-  };
-  const goToProduct = (id: string) => {
-    if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+  const goToProduct = (season: string, product: string) => {
     // 뒤로 돌아왔을 때 인트로를 다시 보지 않고 갤러리로 바로 오도록 표시를 남긴다
     try { sessionStorage.setItem(RETURN_TO_GALLERY_KEY, "1"); } catch {}
-    router.push(productHref(id));
+    router.push(productHref(season, product));
   };
 
   return (
     <section
       id={GALLERY_ID}
-      ref={sectionRef}
-      // 빈 곳 더블클릭 → 포커스 모드 켜기/끄기
-      onDoubleClick={() => setFocus((f) => !f)}
       style={{
         position: "relative",
         background: "#000000",
-        height: "100vh",
+        padding: "160px 0 180px",
         overflow: "hidden",
-        cursor: "default",
-        userSelect: "none",
       }}
     >
-      {/* 중앙 카피 — 포커스 모드에선 물러난다.
-          정렬은 바깥 div(flex)가 맡는다 — motion 요소에 transform으로 정렬을 걸면
-          framer가 자기 transform(scale)으로 덮어써 버린다. */}
-      <div style={{
-        position: "absolute", inset: 0,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        pointerEvents: "none", zIndex: 1,
-      }}>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{
-          opacity: revealed && !focus ? 1 : 0,
-          y: revealed ? 0 : 16,
-          scale: focus ? 0.96 : 1,
-        }}
-        // 카드들이 퍼져 나간 뒤에 등장한다
-        transition={{ duration: 0.7, delay: revealed && !focus ? 0.75 : 0, ease: [0.16, 1, 0.3, 1] }}
-        style={{ textAlign: "center" }}
-      >
+      {/* 섹션 머리말 */}
+      <div style={{ padding: "0 clamp(24px, 6vw, 120px)", marginBottom: "clamp(80px, 9vw, 140px)" }}>
         <p style={{
           fontFamily: FONTS.condensed, fontWeight: 700,
-          fontSize: "clamp(40px, 5.6vw, 100px)",
-          lineHeight: 0.98, letterSpacing: "-0.02em", textTransform: "uppercase",
+          fontSize: "clamp(34px, 4.4vw, 76px)",
+          lineHeight: 1.0, letterSpacing: "-0.02em", textTransform: "uppercase",
           color: "#ffffff", margin: 0,
         }}>
           Thread by Thread,<br />It becomes Yours.
         </p>
-      </motion.div>
       </div>
 
-      {/* 카드들 */}
-      {CARDS.map((c, i) => (
-        <FloatingCard
-          key={i}
+      {/* 모션 4개 — 홀수 줄은 모션이 왼쪽, 짝수 줄은 오른쪽 */}
+      {LOOKS.map((look, i) => (
+        <LookRow
+          key={look.title}
+          look={look}
+          // 1·3번째(인덱스 0·2)는 좌측 모션, 2·4번째(인덱스 1·3)는 우측 모션
+          motionSide={i % 2 === 0 ? "left" : "right"}
           index={i}
-          cfg={c}
-          vp={vp}
-          revealed={revealed}
-          isCurrent={focus && current === i}
-          dimmed={focus && current !== i}
-          hovered={hovered === i && !focus}
-          soundOn={soundOn}
-          onEnter={() => setHovered(i)}
-          onLeave={() => setHovered(null)}
-          onClick={onCenterClick}
-          // 평소: 그 카드의 모션으로 포커스 모드 진입 / 포커스 모드의 중앙 카드: 상품으로
-          onDoubleClick={() => {
-            if (focus && current === i) goToProduct(c.id);
-            else { setCurrent(i); setFocus(true); }
-          }}
+          onPick={goToProduct}
         />
       ))}
 
-      {/* 포커스 모드 UI — 소리 토글 / 진행 / 닫기 */}
-      <AnimatePresence>
-        {focus && (
-          <motion.div
-            key="focus-ui"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onDoubleClick={(e) => e.stopPropagation()}
-            style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 200 }}
-          >
-            <button
-              onClick={(e) => { e.stopPropagation(); setSoundOn((s) => !s); }}
-              aria-label={soundOn ? "Mute" : "Unmute"}
-              style={{ ...ROUND_BTN, top: 100, right: 80 }}
-            >
-              <SoundIcon on={soundOn} />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); setFocus(false); }}
-              aria-label="Close"
-              style={{ ...ROUND_BTN, top: 100, right: 24, color: "#fff", fontSize: 18 }}
-            >
-              ✕
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
+</section>
   );
 }
 
-const ROUND_BTN: React.CSSProperties = {
-  position: "absolute", pointerEvents: "auto",
-  width: 44, height: 44, borderRadius: "50%",
-  background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.5)",
+
+// 한 줄 — 모션 + 설명/아이템. 화면에 들어오면 양쪽이 각자 방향에서 살짝 올라오며 나타난다.
+function LookRow({
+  look, motionSide, index, onPick,
+}: {
+  look: Look;
+  motionSide: "left" | "right";
+  index: number;
+  onPick: (season: string, product: string) => void;
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(rowRef, { once: true, amount: 0.25 });
+
+  const ease = [0.16, 1, 0.3, 1] as const;
+  const shift = motionSide === "left" ? -40 : 40;
+
+  const motionCol = (
+    <motion.div
+      initial={{ opacity: 0, x: shift }}
+      animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: shift }}
+      transition={{ duration: 0.9, ease }}
+      style={{ flex: "0 0 auto" }}
+    >
+      <MotionCard look={look} eager={index === 0} />
+    </motion.div>
+  );
+
+  const textCol = (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+      transition={{ duration: 0.9, delay: 0.15, ease }}
+      style={{
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        // 모션과 함께 화면 가운데에 놓이도록 글 칸의 폭을 고정한다
+        flex: "0 0 auto", width: "min(44vw, 520px)",
+      }}
+    >
+      {/* 번호만 — 시즌 표기는 빼고, 에디션 이름과 24px 띄운다 */}
+      <div style={{
+        fontFamily: FONTS.condensed, fontSize: "12px", letterSpacing: "0.18em",
+        color: "rgba(255,255,255,0.45)", marginBottom: "20px", lineHeight: 1,
+      }}>
+        {String(index + 1).padStart(2, "0")}
+      </div>
+
+      <h3 style={{
+        fontFamily: FONTS.condensed, fontWeight: 700,
+        fontSize: "clamp(30px, 3.2vw, 56px)",
+        lineHeight: 1.04, letterSpacing: "-0.02em", textTransform: "uppercase",
+        color: "#ffffff", margin: "0 0 20px",
+      }}>
+        {look.title}
+      </h3>
+
+      <p style={{
+        fontFamily: FONTS.body, fontSize: "15px", lineHeight: 1.7,
+        letterSpacing: "-0.01em", color: "rgba(255,255,255,0.62)",
+        margin: "0 0 44px", maxWidth: "440px",
+      }}>
+        {look.copy}
+      </p>
+
+      {/* 룩을 이루는 아이템 — 클릭하면 상품 상세로.
+          아이템이 4개인 에디션(툰드라)은 네 칸으로 늘리되 칸 하나의 크기는 비슷하게 유지한다. */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${look.items.length}, minmax(0, 1fr))`,
+        gap: "14px",
+        maxWidth: `${look.items.length * 142 + (look.items.length - 1) * 14}px`,
+      }}>
+        {look.items.map((it) => (
+          <ItemCard key={it.name} item={it} onClick={() => onPick(look.season, it.name)} />
+        ))}
+      </div>
+
+      <button
+        onClick={() => onPick(look.season, look.items[0].name)}
+        style={{
+          marginTop: "36px", alignSelf: "flex-start",
+          background: "none", border: "none", padding: 0, cursor: "pointer",
+          fontFamily: FONTS.condensed, fontSize: "13px", letterSpacing: "0.16em",
+          textTransform: "uppercase", color: "#ffffff",
+          borderBottom: "1px solid rgba(255,255,255,0.4)", paddingBottom: "4px",
+        }}
+      >
+        View the look →
+      </button>
+    </motion.div>
+  );
+
+  return (
+    <div
+      ref={rowRef}
+      style={{
+        // 모션과 글 칸을 각자의 폭 그대로 두고 둘을 한 덩어리로 화면 가운데에 놓는다
+        // (칼럼을 비율로 나누면 양쪽 여백이 어긋난다)
+        display: "flex",
+        justifyContent: "center",
+        gap: "clamp(40px, 6vw, 110px)",
+        alignItems: "center",
+        padding: "0 clamp(24px, 6vw, 120px)",
+        marginBottom: "clamp(100px, 11vw, 190px)",
+      }}
+    >
+      {motionSide === "left" ? motionCol : textCol}
+      {motionSide === "left" ? textCol : motionCol}
+    </div>
+  );
+}
+
+// 모션 한 편 — 화면에 들어오면 음소거로 재생되고, 클릭하면 전체화면으로 크게 볼 수 있다.
+// 소리는 오른쪽 아래 버튼으로 켜고 끈다.
+function MotionCard({ look, eager }: { look: Look; eager: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const inView = useInView(wrapRef, { amount: 0.3 });
+  const [soundOn, setSoundOn] = useState(false);
+  const [full, setFull] = useState(false);
+  // 한 번이라도 재생이 시작됐는지 — 그 전까지는 영상이 검은 판으로 보이므로 썸네일을 덮지 않는다
+  const [started, setStarted] = useState(false);
+  // 영상의 실제 비율(가로/세로). 메타데이터가 오기 전에는 세로 영상(9:16)으로 가정한다.
+  const [ratio, setRatio] = useState<number | null>(null);
+  const readRatio = () => {
+    const v = videoRef.current;
+    if (v?.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
+  };
+
+  // 보일 때만 재생 — 4편이 동시에 돌면 디코더가 포화된다
+  const play = () => { const v = videoRef.current; if (v) v.play().catch(() => {}); };
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (inView) play();
+    else v.pause();
+  }, [inView]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) v.muted = !soundOn;
+  }, [soundOn]);
+
+  // 전체화면 동안엔 뒤 페이지가 스크롤되지 않게 하고, Esc로 닫는다
+  useEffect(() => {
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFull(false); };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // 고정 헤더는 z-index로 덮이지 않아 클래스로 숨긴다 (globals.css)
+    document.body.classList.add("motion-fullscreen");
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.classList.remove("motion-fullscreen");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [full]);
+
+  return (
+    <>
+    <div
+      ref={wrapRef}
+      onClick={() => setFull(true)}
+      style={{
+        position: "relative",
+        // 영상 원본 비율 그대로. 높이를 화면의 92%까지 허용하되(위아래 검은 여백을 줄인다),
+        // max-height로 자르면 비율이 깨지므로 그 높이에 해당하는 폭으로 폭을 정한다.
+        aspectRatio: `${ratio ?? 9 / 16}`,
+        width: `min(42vw, calc(92vh * ${ratio ?? 9 / 16}))`,
+        overflow: "hidden",
+        borderRadius: "2px",
+        // 배경을 페이지와 같은 검정으로 — 폭이 소수점으로 떨어질 때 가장자리에 밝은 실선이 보였다
+        background: "#000",
+        cursor: "pointer",
+        boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+      }}
+    >
+      {/* 영상이 준비되기 전에는 썸네일이 자리를 지킨다 */}
+      {look.poster && (
+        <Image
+          src={look.poster}
+          alt={look.title}
+          fill
+          sizes="(max-width: 900px) 92vw, 48vw"
+          draggable={false}
+          style={{ objectFit: "cover", pointerEvents: "none" }}
+          priority={eager}
+        />
+      )}
+      <video
+        ref={videoRef}
+        src={look.video}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        onLoadedMetadata={readRatio}
+        onCanPlay={() => { readRatio(); if (inView) play(); }}
+        // playing 이벤트는 리스너가 붙기 전에 지나갈 수 있어 timeupdate 로도 확인한다
+        onPlaying={() => setStarted(true)}
+        onTimeUpdate={() => { if (!started) setStarted(true); }}
+        style={{
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover", pointerEvents: "none",
+          // 재생 전 영상은 빈 검은 판이라, 썸네일이 있는 경우엔 시작 전까지 투명하게 둔다
+          opacity: started || !look.poster ? 1 : 0,
+          transition: "opacity 0.5s ease",
+          // 소수점 폭에서 가장자리에 1px 띠가 생기는 것을 막는다
+          transform: "scale(1.004)",
+        }}
+      />
+      {/* 소리 켜기/끄기 — 카드 클릭(전체화면)과 겹치지 않게 전파를 막는다 */}
+      <button
+        onClick={(e) => { e.stopPropagation(); setSoundOn((s) => !s); }}
+        aria-label={soundOn ? "Mute" : "Unmute"}
+        style={{
+          position: "absolute", bottom: 16, right: 16,
+          width: 40, height: 40, borderRadius: "50%", padding: 0,
+          background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          backdropFilter: "blur(4px)", cursor: "pointer",
+        }}
+      >
+        <SoundIcon on={soundOn} />
+      </button>
+    </div>
+
+    {/* 전체화면 — 카드를 클릭하면 열린다. 배경이나 ✕, Esc로 닫는다. */}
+    {full && (
+      <FullscreenMotion look={look} onClose={() => setFull(false)} />
+    )}
+    </>
+  );
+}
+
+// 전체화면 재생 — 화면을 꽉 채우되 잘리지 않게(contain) 보여준다. 소리는 기본으로 켠다.
+// 등장 애니메이션(transform)이 걸린 칼럼 안에 두면 position: fixed 가 그 안쪽 기준이 되어
+// 전체화면이 되지 않는다. 그래서 body로 포털해 띄운다.
+function FullscreenMotion({ look, onClose }: { look: Look; onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [soundOn, setSoundOn] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !soundOn;
+    v.play().catch(() => {
+      // 사용자 제스처 없이 소리까지 켜는 건 막힐 수 있다 — 그럴 땐 음소거로 재생
+      v.muted = true;
+      setSoundOn(false);
+      v.play().catch(() => {});
+    });
+  }, [soundOn]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 3000,
+        background: "#000",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "zoom-out",
+      }}
+    >
+      <video
+        ref={videoRef}
+        src={look.video}
+        loop
+        playsInline
+        autoPlay
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "default" }}
+      />
+      <button
+        onClick={(e) => { e.stopPropagation(); setSoundOn((s) => !s); }}
+        aria-label={soundOn ? "Mute" : "Unmute"}
+        style={{ ...FULL_BTN, right: 76 }}
+      >
+        <SoundIcon on={soundOn} />
+      </button>
+      <button onClick={onClose} aria-label="Close" style={{ ...FULL_BTN, right: 20, fontSize: 18, color: "#fff" }}>
+        ✕
+      </button>
+    </motion.div>,
+    document.body,
+  );
+}
+
+const FULL_BTN: React.CSSProperties = {
+  position: "absolute", top: 20,
+  width: 44, height: 44, borderRadius: "50%", padding: 0,
+  background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.45)",
   display: "flex", alignItems: "center", justifyContent: "center",
   cursor: "pointer", backdropFilter: "blur(4px)",
 };
 
-// 카드 한 장 — 평소엔 제자리에서 살짝 떠다니고, 자기 차례가 되면 중앙으로 날아와 커진다.
-function FloatingCard({
-  index, cfg, vp, revealed, isCurrent, dimmed, hovered, soundOn, onEnter, onLeave, onClick, onDoubleClick,
-}: {
-  index: number;
-  cfg: (typeof CARDS)[number];
-  vp: { w: number; h: number };
-  revealed: boolean; isCurrent: boolean; dimmed: boolean; hovered: boolean; soundOn: boolean;
-  onEnter: () => void; onLeave: () => void; onClick: () => void; onDoubleClick: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // 등장 시차는 처음 퍼져 나갈 때만. 그 뒤(포커스 모드에서 제자리로 돌아올 때 등)엔 바로 움직인다.
-  const [settled, setSettled] = useState(false);
-  useEffect(() => {
-    if (!revealed) return;
-    const t = setTimeout(() => setSettled(true), 1400);
-    return () => clearTimeout(t);
-  }, [revealed]);
-
-  // 제자리(px)와 중앙까지의 거리, 그리고 중앙에서의 배율.
-  // 카드 폭의 기준을 화면 폭만이 아니라 높이에도 묶는다 — 가로로 넓고 세로가 짧은 화면에서
-  // 폭 기준으로만 키우면 카드가 카피 영역을 침범한다.
-  const sizeBase = Math.min(vp.w, vp.h * 1.6);
-  const baseW = Math.min(CARD_MAX, Math.max(CARD_MIN, (cfg.w / 100) * sizeBase));
-  const baseH = baseW * CARD_RATIO;
-  const posX = (cfg.x / 100) * vp.w;
-  const posY = (cfg.y / 100) * vp.h;
-  // 중앙 목표는 화면 전체가 아니라 "고정 헤더 아래 영역"의 중앙이다. 화면 중앙에 맞추면
-  // 카드 윗부분이 헤더에 가려진다. 크기도 그 영역 기준으로 잡아 위아래가 절대 잘리지 않게 한다.
-  const areaTop = HEADER_H;
-  const areaH = vp.h - HEADER_H;
-
-  // 영상의 실제 비율(세로/가로). 썸네일 비율과 다르면 카드를 썸네일 비율로 두고 영상을 채울 때
-  // 위아래가 잘린다. 그래서 중앙에 올 때는 카드 자체를 영상 비율로 만든다 — 그러면 영상이
-  // 잘릴 일이 없다. 비율은 메타데이터가 오면 알 수 있고, 한 번 알면 다음부턴 바로 쓴다.
-  const [videoRatio, setVideoRatio] = useState<number | undefined>(VIDEO_RATIO[cfg.id]);
-  const focusRatio = videoRatio ?? CARD_RATIO;
-  // 영상 크기가 읽히는 시점이 브라우저·캐시 상태에 따라 달라서(loadedmetadata가 리스너보다
-  // 먼저 지나가기도 한다) 이벤트뿐 아니라 마운트·중앙 진입 시점에도 직접 읽는다.
-  const readRatio = () => {
-    const v = videoRef.current;
-    if (!v || !v.videoWidth || !v.videoHeight) return;
-    const r = v.videoHeight / v.videoWidth;
-    if (VIDEO_RATIO[cfg.id] !== r) VIDEO_RATIO[cfg.id] = r;
-    setVideoRatio((prev) => (prev === r ? prev : r));
-  };
-  useEffect(() => { readRatio(); }, [isCurrent]); // eslint-disable-line react-hooks/exhaustive-deps
-  const targetH = Math.min(FOCUS_VH * areaH, 0.92 * vp.w * focusRatio);
-  const targetW = targetH / focusRatio;
-
-  // 놓일 자리(px, 좌상단 기준) — 평소 / 중앙 / 등장 전
-  const restBox  = { left: posX - baseW / 2, top: posY - baseH / 2, width: baseW, height: baseH };
-  const focusBox = { left: vp.w / 2 - targetW / 2, top: areaTop + areaH / 2 - targetH / 2, width: targetW, height: targetH };
-  const seedBox  = { left: vp.w / 2 - baseW * 0.1, top: areaTop + areaH / 2 - baseH * 0.1, width: baseW * 0.2, height: baseH * 0.2 };
-
-  // 중앙에 온 동안만 재생. src도 그때 붙인다(영상이 무거워서).
-  const ensurePlaying = () => {
-    const v = videoRef.current;
-    if (v && isCurrent && v.paused) v.play().catch(() => {});
-  };
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (isCurrent) { v.currentTime = 0; ensurePlaying(); }
-    else v.pause();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCurrent]);
-  useEffect(() => {
-    const v = videoRef.current;
-    if (v) v.muted = !(isCurrent && soundOn);
-  }, [isCurrent, soundOn]);
-
-  const drift = 6;
+// 룩 아이템 한 칸 — 상품 썸네일 + 이름
+function ItemCard({ item, onClick }: { item: LookItem; onClick: () => void }) {
+  const [hover, setHover] = useState(false);
 
   return (
-    <motion.div
-      // 바깥: 제자리 ↔ 중앙 이동. scale 대신 실제 크기(width/height)를 움직인다 —
-      // 중앙에서는 카드 비율 자체가 영상 비율로 바뀌어야 하기 때문.
-      // 등장 전엔 화면 중앙에 작게 모여 있다가(initial), 섹션이 보이면 방사형으로 퍼져 나간다.
-      initial={{ ...seedBox, opacity: 0, rotate: 0 }}
-      animate={
-        !revealed
-          ? { ...seedBox, opacity: 0, rotate: 0 }
-          : isCurrent
-          // 중앙으로 날아오며 똑바로 선다
-          ? { ...focusBox, rotate: 0, opacity: 1 }
-          : { ...restBox, rotate: cfg.rotate, opacity: 1 }
-      }
-      transition={
-        isCurrent
-          ? { type: "spring", stiffness: 120, damping: 20, mass: 0.9 }
-          // 퍼져 나갈 때는 카드마다 조금씩 시차를 둔다
-          : { type: "spring", stiffness: 90, damping: 18, mass: 1, delay: revealed && !settled ? index * 0.055 : 0 }
-      }
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
-        position: "absolute",
-        zIndex: isCurrent ? 100 : hovered ? 20 : 2,
+        background: "none", border: "none", padding: 0, cursor: "pointer",
+        textAlign: "left", display: "block",
       }}
     >
-      <motion.div
-        // 안쪽: 떠다니는 idle + 호버/딤
-        animate={
-          isCurrent
-            // 중앙에선 떠다니던 기울기·흔들림을 전부 0으로 — 안 그러면 흔들리던 각도가 남아 살짝 기운다
-            ? { y: 0, rotate: 0, scale: 1, opacity: 1 }
-            : {
-                y: [0, -drift, 0, drift * 0.6, 0],
-                // 떠다니면서 기울기도 아주 살짝 흔들린다 — 바닥에 놓인 게 아니라 떠 있는 카드
-                rotate: [0, 1.2, 0, -1, 0],
-                opacity: dimmed ? 0.28 : 1,
-                scale: hovered ? 1.08 : 1,
-              }
-        }
-        transition={
-          isCurrent
-            ? { duration: 0.3 }
-            : {
-                y: { duration: cfg.float, repeat: Infinity, ease: "easeInOut" },
-                rotate: { duration: cfg.float * 1.15, repeat: Infinity, ease: "easeInOut" },
-                opacity: { duration: 0.4 },
-                scale: { type: "spring", stiffness: 300, damping: 22 },
-              }
-        }
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-        onClick={(e) => { if (isCurrent) { e.stopPropagation(); onClick(); } }}
-        // 섹션의 더블클릭(포커스 토글)으로 번지지 않게 막고, 카드 자체의 더블클릭으로 처리한다
-        onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick(); }}
-        style={{
-          position: "absolute", inset: 0,
-          borderRadius: isCurrent ? "4px" : "2px",
-          overflow: "hidden",
-          background: "#111",
-          cursor: isCurrent ? "pointer" : "default",
-          // 겹친 카드 위로 떨어지는 그림자 — 검은 배경에선 안 보이지만 다른 카드 위에 겹칠 때
-          // 위 카드가 아래 카드를 어둡게 눌러 앞뒤가 읽힌다. 가까운 진한 그림자 + 넓게 퍼지는 그림자 두 겹.
-          boxShadow: isCurrent
-            ? "0 60px 140px rgba(0,0,0,0.85)"
-            : "0 6px 14px rgba(0,0,0,0.7), 0 24px 56px rgba(0,0,0,0.65)",
-        }}
-      >
+      <div style={{
+        position: "relative", width: "100%", aspectRatio: "3 / 4",
+        overflow: "hidden", borderRadius: "2px", background: "#111",
+        transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+        transform: hover ? "translateY(-4px)" : "none",
+      }}>
         <Image
-          src={`/Main_Motion/Image_${cfg.id}.png`}
-          alt={`Motion ${cfg.id}`}
+          src={item.image}
+          alt={item.name}
           fill
-          // 중앙에 오면 화면을 거의 채우므로 그 크기에 맞는 해상도를 받아둔다
-          sizes="(max-width: 900px) 92vw, 1000px"
+          sizes="200px"
           draggable={false}
+          // 디테일 컷은 사진이라 칸을 채워야 한다
           style={{ objectFit: "cover", pointerEvents: "none" }}
-          priority={index < 5}
         />
-        <motion.video
-          ref={videoRef}
-          // src는 항상 두되 metadata만 미리 받는다(비율을 알기 위해). 본편은 중앙에 왔을 때 play()로.
-          src={`/Main_Motion/Motion_${cfg.id}.mp4`}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          onLoadedMetadata={readRatio}
-          onCanPlay={() => { readRatio(); ensurePlaying(); }}
-          initial={false}
-          animate={{ opacity: isCurrent ? 1 : 0 }}
-          transition={{ duration: 0.5, delay: isCurrent ? 0.3 : 0 }}
-          style={{
-            position: "absolute", inset: 0,
-            width: "100%", height: "100%",
-            // 카드가 영상 비율이라 contain == cover. 혹시 비율을 아직 모를 때도 잘리지는 않게 contain.
-            objectFit: "contain", pointerEvents: "none",
-            background: "#000",
-          }}
-        />
-      </motion.div>
-    </motion.div>
+      </div>
+      <p style={{
+        fontFamily: FONTS.condensed, fontSize: "11px", letterSpacing: "0.08em",
+        textTransform: "uppercase", margin: "10px 0 0",
+        // 이름이 두 줄로 넘어가도 세 칸의 높이가 어긋나지 않게
+        lineHeight: 1.35, minHeight: "2.7em",
+        color: hover ? "#ffffff" : "rgba(255,255,255,0.38)",
+        transition: "color 0.3s",
+      }}>
+        {item.name}
+      </p>
+    </button>
   );
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import InteractiveLogoIntro from "@/components/InteractiveLogoIntro";
 import FlashIntro from "@/components/FlashIntro";
 import MotionScatterGallery, { GALLERY_ID, RETURN_TO_GALLERY_KEY } from "@/components/MotionScatterGallery";
+import Footer from "@/components/Footer";
 
 export default function Page() {
   // 홈 진입(새로고침 포함) 또는 로고 클릭 시 항상 인트로 재생
@@ -49,6 +50,7 @@ export default function Page() {
       <InteractiveLogoIntro startCompleted={returningToGallery} />
       {/* 드로잉 완료(COMPLETE) 후 스크롤이 열리면 나타나는 대각선 모션 갤러리 */}
       <MotionScatterGallery />
+      <Footer />
       {showFlash && <FlashIntro onDone={() => setShowFlash(false)} />}
     </div>
   );
