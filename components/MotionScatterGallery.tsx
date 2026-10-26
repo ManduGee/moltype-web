@@ -64,14 +64,15 @@ const LOOKS: Look[] = [
       "바람을 표현합니다. 섬세한 크로셰 디테일과 부드러운 시폰 소재가 조화를 이루며, 몽환적이면서도 " +
       "로맨틱한 분위기를 완성합니다.",
     items: [
-      { name: "Bloom Veil",  image: cut("Summer/Summer Bloom Veil/Top") + ".png" },
-      { name: "Bloom Scarf", image: cut("Summer/Summer Bloom Veil/Scrarf") + ".png" },
-      { name: "Bloom Shoes", image: cut("Summer/Summer Bloom Veil/Shoes") + ".png" },
+      { name: "Bloom Veil",  image: cut("Summer/Summer Bloom Veil/Top") + ".jpg" },
+      { name: "Bloom Scarf", image: cut("Summer/Summer Bloom Veil/Scrarf") + ".jpg" },
+      { name: "Bloom Shoes", image: cut("Summer/Summer Bloom Veil/Shoes") + ".jpg" },
     ],
   },
   {
     // 새로 교체한 모션 (Website_07_최종)
     video: "/Website_07_최종.mp4",
+    poster: "/Main_Motion/Image_07.png",
     season: "Winter",
     title: "Tundra",
     copy:
@@ -80,7 +81,7 @@ const LOOKS: Look[] = [
       "따뜻한 소재의 대비를 표현합니다. 풍성한 텍스처와 개성 있는 장식이 조화를 이루며, 자유롭고 " +
       "대담한 겨울 스타일을 완성합니다.",
     items: [
-      { name: "Tundra Fur Jacket",    image: cut("Winter/Tundra Fur Jacket") + ".png" },
+      { name: "Tundra Fur Jacket",    image: cut("Winter/Tundra Fur Jacket") + ".jpg" },
       { name: "Tundra Knit",          image: cut("Winter/Tundra /Knit") + ".jpg" },
       { name: "Tundra Layered Skirt", image: cut("Winter/Tundra /Skirt") + ".jpg" },
       { name: "Tundra Boots",         image: cut("Winter/Tundra /Shoes") + ".jpg" },
@@ -97,9 +98,9 @@ const LOOKS: Look[] = [
       "낭만적인 분위기를 더합니다. 섬세한 뜨개 디테일과 유기적인 실루엣을 통해 변화와 성장의 " +
       "아름다움을 표현합니다.",
     items: [
-      { name: "Frozen Bloom Dress",      image: cut("Winter/Frozen Bloom/Dress") + ".png" },
-      { name: "Frozen Bloom Leg Warmer", image: cut("Winter/Frozen Bloom/Socks") + ".png" },
-      { name: "Frozen Bloom Boots",      image: cut("Winter/Frozen Bloom/Boots") + ".png" },
+      { name: "Frozen Bloom Dress",      image: cut("Winter/Frozen Bloom/Dress") + ".jpg" },
+      { name: "Frozen Bloom Leg Warmer", image: cut("Winter/Frozen Bloom/Socks") + ".jpg" },
+      { name: "Frozen Bloom Boots",      image: cut("Winter/Frozen Bloom/Boots") + ".jpg" },
     ],
   },
 ];

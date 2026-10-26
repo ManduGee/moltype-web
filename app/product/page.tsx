@@ -10,6 +10,7 @@ import PageLayout from "@/components/PageLayout";
 import BrandStoryHeroCarousel from "@/components/BrandStoryHeroCarousel";
 import { PATTERNS, COLORS, FONTS } from "@/lib/assets";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import { useCart } from "@/components/CartProvider";
 import {
   SEASON_PRODUCTS, SEASON_LABELS, FONT_KO,
   type Product, type CartItem,
@@ -303,7 +304,8 @@ function HangerRack({ products, onSelect }: { products: readonly Product[]; onSe
 export default function ProductPage() {
   const [seasonIndex, setSeasonIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // 장바구니는 전역(CartProvider)에서 관리한다 — 페이지를 옮겨도 유지된다
+  const { items: cartItems, add: addCartItem, removeAt: removeCartItem, clear: clearCart } = useCart();
   const [showCart, setShowCart] = useState(false);
   const products = SEASON_PRODUCTS[seasonIndex];
 
@@ -331,7 +333,7 @@ export default function ProductPage() {
   }, []);
 
   const handleAddToCart = (item: CartItem) => {
-    setCartItems(prev => [...prev, item]);
+    addCartItem(item);
   };
 
   return (
@@ -535,7 +537,7 @@ export default function ProductPage() {
                       <p style={{ fontFamily: FONTS.condensed, fontSize: "13px", color: "#050505", margin: 0 }}>{item.price}</p>
                     </div>
                     <button
-                      onClick={() => setCartItems(prev => prev.filter((_, idx) => idx !== i))}
+                      onClick={() => removeCartItem(i)}
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#bbb", fontSize: "14px", padding: "4px" }}
                     >✕</button>
                   </div>
@@ -550,14 +552,18 @@ export default function ProductPage() {
                     ₩ {cartItems.reduce((sum, item) => sum + parseInt(item.price.replace(/[^0-9]/g, "")), 0).toLocaleString()}
                   </span>
                 </div>
-                <button style={{
-                  width: "100%", height: "52px",
-                  background: "#F77DA6", color: "#fff",
-                  border: "none", cursor: "pointer",
-                  fontFamily: FONTS.condensed, fontWeight: 700,
-                  fontSize: "13px", letterSpacing: "-0.01em",
-                  textTransform: "uppercase",
-                }}>
+                <button
+                  // 결제 연동 전까지는 "주문 완료"에 해당하는 동작으로 장바구니를 비운다
+                  onClick={() => { clearCart(); setShowCart(false); }}
+                  style={{
+                    width: "100%", height: "52px",
+                    background: "#F77DA6", color: "#fff",
+                    border: "none", cursor: "pointer",
+                    fontFamily: FONTS.condensed, fontWeight: 700,
+                    fontSize: "13px", letterSpacing: "-0.01em",
+                    textTransform: "uppercase",
+                  }}
+                >
                   CHECKOUT
                 </button>
               </div>

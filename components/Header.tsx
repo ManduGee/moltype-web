@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FONTS } from "@/lib/assets";
 import { SEASON_PRODUCTS, SEASON_LABELS } from "@/lib/products";
+import { useCart } from "@/components/CartProvider";
 
 const NAV_ITEMS = [
   { label: "BRAND STORY",    href: "/brand-story" },
@@ -27,6 +28,7 @@ export default function Header() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const { items: cartItems, removeAt: removeCartItem } = useCart();
 
   return (
     <header
@@ -137,9 +139,20 @@ export default function Header() {
         <button
           onClick={() => { setCartOpen((v) => !v); setSearchOpen(false); }}
           aria-label="Cart"
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", position: "relative" }}
         >
           <BagIcon />
+          {cartItems.length > 0 && (
+            <span style={{
+              position: "absolute", top: -2, right: -2,
+              minWidth: 16, height: 16, padding: "0 4px",
+              borderRadius: "999px", background: "#F77DA6", color: "#fff",
+              fontFamily: FONTS.body, fontSize: "9px", fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {cartItems.length}
+            </span>
+          )}
         </button>
 
         {/* 검색 — 화면 전체를 덮는 패널로 연다 */}
@@ -157,16 +170,60 @@ export default function Header() {
                 position: "absolute", top: `${HEADER_H - 8}px`, right: 0,
                 width: "280px", background: "#0a0a0a",
                 border: "1px solid rgba(255,255,255,0.15)",
-                padding: "24px 16px",
-                textAlign: "center",
+                padding: "20px 16px",
+                maxHeight: "420px", overflowY: "auto",
               }}
             >
-              <p style={{
-                fontFamily: FONTS.body, fontSize: "13px",
-                color: "rgba(255,255,255,0.6)", margin: 0,
-              }}>
-                장바구니가 비어있습니다
-              </p>
+              {cartItems.length === 0 ? (
+                <p style={{
+                  fontFamily: FONTS.body, fontSize: "13px",
+                  color: "rgba(255,255,255,0.6)", margin: 0, textAlign: "center",
+                }}>
+                  장바구니가 비어있습니다
+                </p>
+              ) : (
+                <>
+                  {cartItems.map((item, i) => (
+                    <div key={`${item.name}-${item.size}-${i}`} style={{
+                      display: "flex", gap: "10px", alignItems: "center",
+                      paddingBottom: "12px", marginBottom: "12px",
+                      borderBottom: "1px solid rgba(255,255,255,0.1)",
+                    }}>
+                      <div style={{ width: 44, height: 56, position: "relative", background: "#fff", flexShrink: 0 }}>
+                        <Image src={item.image} alt={item.name} fill sizes="44px" style={{ objectFit: "contain", padding: 4 }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{
+                          fontFamily: FONTS.condensed, fontWeight: 700, fontSize: "12px",
+                          letterSpacing: "-0.02em", textTransform: "uppercase",
+                          color: "#fff", margin: "0 0 2px",
+                        }}>
+                          {item.name}
+                        </p>
+                        <p style={{ fontFamily: FONTS.body, fontSize: "10px", color: "rgba(255,255,255,0.5)", margin: "0 0 2px" }}>
+                          SIZE: {item.size}
+                        </p>
+                        <p style={{ fontFamily: FONTS.condensed, fontSize: "12px", color: "rgba(255,255,255,0.85)", margin: 0 }}>
+                          {item.price}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeCartItem(i)}
+                        aria-label={`${item.name} 삭제`}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: "12px", padding: 4 }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "4px" }}>
+                    <span style={{ fontFamily: FONTS.condensed, fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>TOTAL</span>
+                    <span style={{ fontFamily: FONTS.condensed, fontWeight: 700, fontSize: "13px", color: "#fff" }}>
+                      ₩ {cartItems.reduce((sum, it) => sum + parseInt(it.price.replace(/[^0-9]/g, "")), 0).toLocaleString()}
+                    </span>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

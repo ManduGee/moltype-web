@@ -39,7 +39,7 @@ const SESSIONS: Session[] = [
     subtitle: "패치 플레이스먼트 랩",
     body: "MOLTYPE의 패치와 뜨개 조각을 옷 위에 직접 배치해보는 워크숍입니다.\n같은 패치라도 위치에 따라 달라지는 옷의 인상을 실험하고,\n자신만의 방식으로 의류를 커스터마이징합니다.",
     overlayColor: COLORS.green,
-    image: "/Worksop_04.png",
+    image: "/Workshop_04.png",
     startImgIdx: 1,
   },
   {
@@ -222,7 +222,7 @@ function DatePicker({ value, onChange, inputStyle, labelStyle }: {
 
 const WORKSHOP_IMAGES = [
   "/Workshop_03.png",
-  "/Worksop_04.png",
+  "/Workshop_04.png",
   "/Workshop_05.png",
   "/Workshop_06.png",
   "/workshop_07.png",

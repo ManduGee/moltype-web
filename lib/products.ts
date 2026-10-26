@@ -292,14 +292,14 @@ export const detailCut = (...segments: string[]) => {
 };
 
 // Front → Side_01 → Side_02 → Back → Product Detail 01~05(가변)
-export const STD_ORDER = ["Front.png", "Side_01.png", "Side_02.png", "Back.png"];
-// ext — 새로 받은 컷은 jpg로 오는 경우가 있어 확장자를 선택할 수 있게 한다 (기본 png)
+export const STD_ORDER = ["Front.jpg", "Side_01.jpg", "Side_02.jpg", "Back.jpg"];
+// ext — 상세컷은 모두 jpg로 저장돼 있다 (용량 때문에 png에서 변환했다)
 // back — 네 번째 컷 파일명. 일부 상품(Soft Reverie)은 Back 대신 Bottom으로 왔다.
 export const stdOrder = (ext: string, back: string = "Back") =>
   ["Front", "Side_01", "Side_02", back].map((f) => `${f}.${ext}`);
 export const withDetails = (
   season: string, family: string, variant: string, detailCount: number,
-  ext: string = "png", back: string = "Back",
+  ext: string = "jpg", back: string = "Back",
 ) =>
   detailCut(season, family, variant, [
     ...stdOrder(ext, back),
@@ -310,7 +310,7 @@ export const DETAIL_IMAGES: Record<string, string[]> = {
   // Tundra Fur Jacket만 하위 variant 폴더 없이 시즌 바로 아래 있다.
   "Tundra Fur Jacket": detailCut("Winter", "Tundra Fur Jacket", [
     ...STD_ORDER,
-    "Product_Detail_01.png", "Product_Detail_02.png", "Product_Detail_03.png", "Product_Detail_04.png",
+    "Product_Detail_01.jpg", "Product_Detail_02.jpg", "Product_Detail_03.jpg", "Product_Detail_04.jpg",
   ].join(",")),
 
   // Denim Mirage 패밀리 — Pants(Denim Mirage 본체) / Top(Mirage Top) / Shoes(Mirage Boots)

@@ -1058,6 +1058,31 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
           )}
         </AnimatePresence>
 
+        {/* 건너뛰기 — 재방문자나 뜨개 체험을 건너뛰고 싶은 사람을 위한 출구.
+            누르면 완료 처리되어 스크롤 잠금이 풀린다. */}
+        <AnimatePresence>
+          {!isComplete && (
+            <motion.button
+              key="skip"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, delay: 1.2 }}
+              onClick={handleComplete}
+              style={{
+                position: "absolute", bottom: 52, right: 40,
+                background: "none", border: "none", cursor: "pointer",
+                fontFamily: "Pretendard, sans-serif",
+                fontSize: "10px", letterSpacing: "0.22em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.5)",
+                padding: "8px 4px", zIndex: 30,
+              }}
+            >
+              Skip →
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         {/* 슬로건 */}
         <AnimatePresence>
           {showSlogan && (
