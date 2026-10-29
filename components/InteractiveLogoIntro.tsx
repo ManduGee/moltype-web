@@ -687,6 +687,8 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
     canvas.addEventListener("mousedown",  onMouseDown);
     canvas.addEventListener("mousemove",  onMouseMove);
     canvas.addEventListener("mouseup",    onMouseUp);
+    // 캔버스 밖(버튼 위 등)에서 손을 떼도 그리기를 끝낸다
+    window.addEventListener("mouseup",    onMouseUp);
     canvas.addEventListener("mouseleave", onMouseLeave);
     canvas.addEventListener("touchstart", onTouchStart, { passive: false });
     canvas.addEventListener("touchmove",  onTouchMove,  { passive: false });
@@ -697,6 +699,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
       canvas.removeEventListener("mousedown",  onMouseDown);
       canvas.removeEventListener("mousemove",  onMouseMove);
       canvas.removeEventListener("mouseup",    onMouseUp);
+      window.removeEventListener("mouseup",    onMouseUp);
       canvas.removeEventListener("mouseleave", onMouseLeave);
       canvas.removeEventListener("touchstart", onTouchStart);
       canvas.removeEventListener("touchmove",  onTouchMove);
@@ -1115,6 +1118,9 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, delay: 1.2 }}
             onClick={handleComplete}
+            // 뜨개를 그리던 채로 와서 SKIP 위에서 손을 떼면 click이 SKIP으로 오지 않는다
+            // (누른 곳=캔버스, 뗀 곳=SKIP이 달라 공통 부모로 감). 손을 뗄 때도 받는다.
+            onPointerUp={handleComplete}
             style={{
               // 우상단(헤더 바로 아래) — 하단은 HAND MODE·COMPLETE·저장 버튼이 쓰고 있어
               // 뜨개를 진행하면 COMPLETE와 겹쳤다.
