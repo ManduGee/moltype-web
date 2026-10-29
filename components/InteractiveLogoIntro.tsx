@@ -1004,14 +1004,14 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
                 DRAW TO KNIT
               </span>
               <span style={{
-                fontFamily: "Pretendard, sans-serif",
+                fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
                 fontSize:   "clamp(11px,1.1vw,15px)",
                 color:      "rgba(255,255,255,0.55)", letterSpacing: "-0.02em",
               }}>
                 클릭+드래그로 나만의 뜨개를 완성해보세요
               </span>
               <span style={{
-                fontFamily:    "Pretendard, sans-serif",
+                fontFamily:    "'Pretendard Variable', Pretendard, sans-serif",
                 fontSize:      "clamp(10px,0.9vw,12px)",
                 color:         "rgba(255,255,255,0.35)",
                 letterSpacing: "-0.01em",
@@ -1044,7 +1044,9 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
               }}
             >
               <div style={{
-                width: "75vw", height: 4,
+                // 좌하단 HAND MODE·우하단 COMPLETE 버튼과 겹치지 않게 양옆을 비운다
+                // (75vw로 두면 1024px 화면에서 HAND MODE 밑으로 31px 들어갔다)
+                width: "min(75vw, calc(100vw - 440px))", height: 4,
                 backgroundColor: "rgba(255,255,255,0.25)",
                 borderRadius: 2, overflow: "hidden",
               }}>
@@ -1070,11 +1072,15 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
               transition={{ duration: 0.4, delay: 1.2 }}
               onClick={handleComplete}
               style={{
-                position: "absolute", bottom: 52, right: 40,
+                // 우상단(헤더 바로 아래) — 하단은 HAND MODE·COMPLETE·저장 버튼이 쓰고 있어
+                // 뜨개를 진행하면 COMPLETE와 겹쳤다.
+                position: "absolute", top: HEADER_H + 24, right: 32,
                 background: "none", border: "none", cursor: "pointer",
-                fontFamily: "Pretendard, sans-serif",
-                fontSize: "10px", letterSpacing: "0.22em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.5)",
+                // 실제로 불러오는 웹폰트 이름은 "Pretendard Variable" — "Pretendard"만 쓰면
+                // 로컬에 설치된 컴퓨터에서만 맞게 보인다.
+                fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+                fontSize: "11px", fontWeight: 500, letterSpacing: "0.16em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
                 padding: "8px 4px", zIndex: 30,
               }}
             >
@@ -1111,7 +1117,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
                 animate={{ opacity: [0.3, 0.8, 0.3] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
                 style={{
-                  fontFamily: "Pretendard, sans-serif",
+                  fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
                   fontSize: "10px", letterSpacing: "0.22em",
                   textTransform: "uppercase", color: "rgba(255,255,255,0.6)",
                   margin: "14px 0 0",
@@ -1182,7 +1188,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
             style={{
               position: "absolute", bottom: 86, left: 32,
               maxWidth: 260, pointerEvents: "none", zIndex: 1000,
-              fontFamily: "Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
+              fontFamily: "'Pretendard Variable', Pretendard, sans-serif", fontSize: "11px", lineHeight: 1.6,
               color: "rgba(247,125,166,0.9)", letterSpacing: "-0.01em",
             }}
           >

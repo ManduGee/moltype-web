@@ -70,8 +70,8 @@ const LOOKS: Look[] = [
     ],
   },
   {
-    // 새로 교체한 모션 (Website_07_최종)
-    video: "/Website_07_최종.mp4",
+    // 새로 교체한 모션 (원본 파일명 ㅇㅇㅇㅇ.mp4 → 한글 파일명은 OS마다 경로가 달라질 수 있어 영문으로 저장)
+    video: "/Main_Motion/Motion_07.mp4",
     poster: "/Main_Motion/Image_07.png",
     season: "Winter",
     title: "Tundra",

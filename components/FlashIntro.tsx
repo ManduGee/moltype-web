@@ -25,6 +25,16 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
 
   const activeRef = phase === "voice" ? voiceRef : mainRef;
 
+  // 소리를 켠 채 재생이 막히면(브라우저 자동재생 정책) 인트로를 끝내지 말고 음소거로 이어서 재생한다.
+  // 예전엔 여기서 바로 finish()를 불러, 소리 버튼을 누른 뒤 다음 영상으로 넘어갈 때 인트로가 통째로 스킵됐다.
+  const playOrMute = (v: HTMLVideoElement, onFail: () => void) => {
+    v.play().catch(() => {
+      v.muted = true;
+      setSoundOn(false);
+      v.play().catch(onFail);
+    });
+  };
+
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
@@ -50,7 +60,7 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
         return;
       }
       stallCount += 1;
-      if (v.paused && !doneRef.current) v.play().catch(() => {});
+      if (v.paused && !doneRef.current) playOrMute(v, () => {});
       if (stallCount >= STALL_LIMIT) advance();
     }, 500);
     return () => clearInterval(t);
@@ -87,7 +97,9 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
     const next = !soundOn;
     setSoundOn(next);
     const v = activeRef.current;
-    if (v) v.muted = !next;
+    if (!v) return;
+    v.muted = !next;
+    if (v.paused) playOrMute(v, () => {});
   };
 
   return (
@@ -116,12 +128,8 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           onLoadedData={(e) => {
             const v = e.currentTarget;
             v.muted = !soundOn;
-            v.play().catch(() => {
-              // 언뮤트 재생이 막히면(자동재생 정책) 음소거로라도 재생하고, 버튼 표시도 맞춘다
-              v.muted = true;
-              setSoundOn(false);
-              v.play().catch(() => setPhase("main"));
-            });
+            // 언뮤트 재생이 막히면 음소거로라도 재생하고, 그것마저 안 되면 다음 영상으로
+            playOrMute(v, () => setPhase("main"));
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -143,7 +151,8 @@ export default function FlashIntro({ onDone }: { onDone: () => void }) {
           onError={finish}
           onLoadedData={(e) => {
             const v = e.currentTarget;
-            v.play().catch(() => finish());
+            // 소리를 켜둔 상태로 넘어왔는데 브라우저가 막는 경우 — 음소거로 이어서 재생한다
+            playOrMute(v, finish);
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

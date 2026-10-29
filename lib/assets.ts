@@ -70,7 +70,9 @@ export const COLORS = {
 // 폴백으로만 남겨둔다 (폰트 로드 실패 시에만 적용됨).
 export const FONTS = {
   condensed: "'Univers Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif",
-  body:      "Pretendard,'Arial Narrow',sans-serif",
+  // 웹폰트로 등록된 이름은 "Pretendard Variable"(layout.tsx의 CDN). 앞에 두지 않으면
+  // Pretendard가 설치되지 않은 컴퓨터에선 Arial Narrow로 떨어진다.
+  body:      "'Pretendard Variable',Pretendard,'Arial Narrow',sans-serif",
   // Akkurat — Concept Cards 영문 본문 전용 (한글 글리프 미지원이라 한글 텍스트에는 사용하지 않음)
   akkurat:   "'Akkurat','Arial Narrow',sans-serif",
 } as const;
