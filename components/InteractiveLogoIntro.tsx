@@ -1060,35 +1060,6 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
           )}
         </AnimatePresence>
 
-        {/* 건너뛰기 — 재방문자나 뜨개 체험을 건너뛰고 싶은 사람을 위한 출구.
-            누르면 완료 처리되어 스크롤 잠금이 풀린다. */}
-        <AnimatePresence>
-          {!isComplete && (
-            <motion.button
-              key="skip"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, delay: 1.2 }}
-              onClick={handleComplete}
-              style={{
-                // 우상단(헤더 바로 아래) — 하단은 HAND MODE·COMPLETE·저장 버튼이 쓰고 있어
-                // 뜨개를 진행하면 COMPLETE와 겹쳤다.
-                position: "absolute", top: HEADER_H + 24, right: 32,
-                background: "none", border: "none", cursor: "pointer",
-                // 실제로 불러오는 웹폰트 이름은 "Pretendard Variable" — "Pretendard"만 쓰면
-                // 로컬에 설치된 컴퓨터에서만 맞게 보인다.
-                fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                fontSize: "11px", fontWeight: 500, letterSpacing: "0.16em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
-                padding: "8px 4px", zIndex: 30,
-              }}
-            >
-              Skip →
-            </motion.button>
-          )}
-        </AnimatePresence>
-
         {/* 슬로건 */}
         <AnimatePresence>
           {showSlogan && (
@@ -1130,6 +1101,39 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
         </AnimatePresence>
 
       </motion.div>
+
+      {/* 건너뛰기 — 재방문자나 뜨개 체험을 건너뛰고 싶은 사람을 위한 출구.
+          누르면 완료 처리되어 스크롤 잠금이 풀린다.
+          안내 문구 레이어(pointer-events: none) 안에 두면 클릭이 뒤의 뜨개 캔버스로 빠져나가
+          눌리지 않는다. 그래서 HAND MODE·COMPLETE 버튼과 같은 층에 둔다. */}
+      <AnimatePresence>
+        {!isComplete && (
+          <motion.button
+            key="skip"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, delay: 1.2 }}
+            onClick={handleComplete}
+            style={{
+              // 우상단(헤더 바로 아래) — 하단은 HAND MODE·COMPLETE·저장 버튼이 쓰고 있어
+              // 뜨개를 진행하면 COMPLETE와 겹쳤다.
+              position: "absolute", top: HEADER_H + 24, right: 32,
+              background: "none", border: "none", cursor: "pointer",
+              // 실제로 불러오는 웹폰트 이름은 "Pretendard Variable" — "Pretendard"만 쓰면
+              // 로컬에 설치된 컴퓨터에서만 맞게 보인다.
+              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+              fontSize: "11px", fontWeight: 500, letterSpacing: "0.16em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
+              // 글자가 작아 누르기 어려워서 클릭 영역을 넉넉히 잡는다
+              padding: "12px 14px", margin: "-4px -10px 0 0", zIndex: 30,
+              pointerEvents: "auto",
+            }}
+          >
+            Skip →
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* ── HAND MODE 토글 — 좌측 하단 ─────────────────────────────────────── */}
       {mounted && !isComplete && (
