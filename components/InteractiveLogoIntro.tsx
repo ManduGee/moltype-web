@@ -81,8 +81,25 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
   const [showSlogan,      setShowSlogan]      = useState(startCompleted);
   const [progressOpacity, setProgressOpacity] = useState(startCompleted ? 0 : 1);
   // v10: 털 로고 전환 제거 — outline/canvas opacity 고정, fur 없음
-  const [cursorPos,       setCursorPos]       = useState({ x: -300, y: -300 });
-  const [cursorInside,    setCursorInside]    = useState(false);
+  // 브러시 커서 위치는 React 상태로 두지 않는다 — 마우스가 움직일 때마다 인트로 전체(헤더 포함)가
+  // 다시 렌더링돼 그리는 동안 렉이 걸렸다. ref로 DOM 스타일만 직접 바꾼다.
+  const cursorElRef  = useRef<HTMLDivElement>(null);
+  const cursorPosRef = useRef({ x: -300, y: -300 });
+  const setCursorPos = (p: { x: number; y: number }) => {
+    cursorPosRef.current = p;
+    const el = cursorElRef.current;
+    if (el) el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+  };
+  // 캔버스를 다시 그려야 하는지 — 아무것도 바뀌지 않았는데 매 프레임 전체를 다시 그리던 것을 막는다
+  const dirtyRef = useRef(true);
+  const lastRatioRef = useRef(0);
+  const [cursorInside,    setCursorInsideState] = useState(false);
+  const cursorInsideRef = useRef(false);
+  const setCursorInside = (v: boolean) => {
+    if (cursorInsideRef.current === v) return;
+    cursorInsideRef.current = v;
+    setCursorInsideState(v);
+  };
   const [brushVis,        setBrushVis]        = useState(BRUSH_DEF);
   // v9: 힌트 텍스트 위치 = 로고 하단 + 32px (top 기준)
   const [hintTop, setHintTop] = useState<number | null>(null);
@@ -199,6 +216,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
       }
     totalCells.current = Math.max(total, 1);
     maskReady.current = true;
+    dirtyRef.current = true;
   }, []);
 
   // ── 패턴 pre-tile ──────────────────────────────────────────────────────────
@@ -239,6 +257,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
   // ── revealBrush — isInsideLogo 1차 검증, NEVER clears ────────────────────
   const revealBrush = useCallback((sx: number, sy: number) => {
     if (!isInsideLogo(sx, sy)) return;
+    dirtyRef.current = true;
     const ac = accumRef.current;
     if (!ac || patsLoaded.current < 1) return;
     const tiled = tiledPats.current[layerIdx.current];
@@ -264,6 +283,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
   // ── 채움 격자 마킹 ────────────────────────────────────────────────────────
   const markFilled = useCallback((sx: number, sy: number) => {
     if (!maskReady.current || !maskPixels.current) return;
+    dirtyRef.current = true;
     const { x, y, w, h } = logoRect.current;
     const lx = sx - x, ly = sy - y;
     const r  = brushR.current;
@@ -414,6 +434,7 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
 
     // Resize
     const onResize = () => {
+      dirtyRef.current = true;
       const vw2 = window.innerWidth, vh2 = window.innerHeight;
       // 모바일에서 주소창 표시/숨김 등으로 순간적으로 0이 찍히는 경우 — 무시하고 다음 리사이즈를 기다린다
       if (vw2 <= 0 || vh2 <= 0) return;
@@ -453,6 +474,14 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
     if (!canvas) return;
 
     const render = () => {
+      // 새로 그릴 점도 없고 바뀐 것도 없으면 이번 프레임은 건너뛴다.
+      // (예전엔 완성 후 아래 갤러리를 보는 동안에도 매 프레임 전체를 다시 그려 사이트 전체가 무거웠다)
+      const hasPending = pendingX.current !== null && pendingY.current !== null && isDrawing.current;
+      if (!dirtyRef.current && !hasPending) {
+        rafRef.current = requestAnimationFrame(render);
+        return;
+      }
+      dirtyRef.current = false;
       const ctx = canvas.getContext("2d")!;
 
       // DPR scale이 매 frame 보존되지 않으므로 매번 setTransform 적용
@@ -473,8 +502,12 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
         revealBrush(px, py);
         markFilled(px, py);
 
+        // 진행 바는 0.5% 단위로만 갱신 — 매 프레임 상태를 바꾸면 그때마다 전체가 다시 렌더링된다
         const newRatio = filledCells.current.size / totalCells.current;
-        setFillRatio(newRatio);
+        if (Math.abs(newRatio - lastRatioRef.current) >= 0.005 || newRatio >= 1) {
+          lastRatioRef.current = newRatio;
+          setFillRatio(newRatio);
+        }
 
         // 자동 완성 제거 — 사용자가 완료 버튼으로 직접 완성
         pendingX.current = null;
@@ -951,10 +984,12 @@ export default function InteractiveLogoIntro({ startCompleted = false }: { start
 
       {/* ── 커스텀 브러시 커서 — 완성 후 숨김 ──────────────────────────── */}
       {mounted && !isComplete && (
-        <div style={{
+        <div ref={cursorElRef} style={{
           position:      "absolute",
-          left:          cursorPos.x,
-          top:           cursorPos.y,
+          left:          0,
+          top:           0,
+          transform:     `translate(${cursorPosRef.current.x}px, ${cursorPosRef.current.y}px)`,
+          willChange:    "transform",
           width:         brushDia,
           height:        brushDia,
           marginLeft:    -brushVis,
