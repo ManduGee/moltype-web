@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import PageLayout from "@/components/PageLayout";
 import { COLORS, FONTS, PATTERNS, BRAND_IMAGES } from "@/lib/assets";
 
@@ -315,10 +316,13 @@ function ConceptCardsSection() {
 // ─── Section 4 — Graphic ending ──────────────────────────────────────────────
 function ClusterGraphic() {
   return (
-    <img
+    <Image
       src={PATTERNS.flowerGraphic}
       alt="MOLTYPE flower graphic"
-      style={{ width: "100%", maxWidth: "579px", aspectRatio: "1159 / 1614", objectFit: "contain" }}
+      width={1159}
+      height={1614}
+      sizes="579px"
+      style={{ width: "100%", height: "auto", maxWidth: "579px", aspectRatio: "1159 / 1614", objectFit: "contain" }}
     />
   );
 }

@@ -272,6 +272,9 @@ function MotionCard({ look, eager }: { look: Look; eager: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const inView = useInView(wrapRef, { amount: 0.3 });
+  // 화면에 들어오기 한 화면 전부터 미리 받아 둔다 — 보일 때 받기 시작하면 포스터만 보이다가
+  // 몇 초 뒤에야 영상이 시작됐다.
+  const near = useInView(wrapRef, { margin: "100% 0px 100% 0px", once: true });
   const [soundOn, setSoundOn] = useState(false);
   const [full, setFull] = useState(false);
   // 한 번이라도 재생이 시작됐는지 — 그 전까지는 영상이 검은 판으로 보이므로 썸네일을 덮지 않는다
@@ -296,6 +299,11 @@ function MotionCard({ look, eager }: { look: Look; eager: boolean }) {
     const v = videoRef.current;
     if (v) v.muted = !soundOn;
   }, [soundOn]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (near && v && v.preload !== "auto") v.preload = "auto";
+  }, [near]);
 
   // 전체화면 동안엔 뒤 페이지가 스크롤되지 않게 하고, Esc로 닫는다
   useEffect(() => {

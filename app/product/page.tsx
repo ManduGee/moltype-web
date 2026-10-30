@@ -117,8 +117,8 @@ const RACK_HALF = 8;            // 중앙 기준 좌우로 렌더할 슬롯 수
 const RACK_CENTER_SPREAD = 300; // 중앙 부근 간격을 넓히는 양
 const RACK_SPREAD_SIGMA = 1.3;  // 넓힘이 감쇠하는 거리
 
-function RackSlot({ slotIndex, offset, product, railRot }: {
-  slotIndex: number; offset: any; product: Product; railRot: any;
+function RackSlot({ slotIndex, offset, product, railRot, eager }: {
+  slotIndex: number; offset: any; product: Product; railRot: any; eager: boolean;
 }) {
   const rel     = useTransform(offset, (o: number) => slotIndex - o / RACK_SPACING); // 중앙 기준 거리(아이템 단위)
   // 중앙 부근일수록 간격을 넓힌다 (선형 간격 + 중앙 가우시안 확장)
@@ -141,12 +141,17 @@ function RackSlot({ slotIndex, offset, product, railRot }: {
       }}
     >
       {/* 옷걸이+옷 통짜 에셋 (300×320 비율 = 900×960). 전용 에셋(/assets/)이 있으면 사용, 없으면 기본 에셋 */}
-      <img
+      <Image
         src={product.image.startsWith("/assets/") ? product.image : "/Website_Product_Asset.png"}
         alt={product.name}
+        width={900}
+        height={960}
+        sizes="420px"
         draggable={false}
+        // 가운데(처음 보이는) 칸들은 바로 받는다
+        priority={eager}
         style={{
-          width: "100%", aspectRatio: "300 / 320", objectFit: "contain",
+          width: "100%", height: "auto", aspectRatio: "300 / 320", objectFit: "contain",
           display: "block",
           pointerEvents: "none", userSelect: "none",
         }}
@@ -234,6 +239,7 @@ function HangerRack({ products, onSelect }: { products: readonly Product[]; onSe
         offset={offset}
         product={products[wrap(slotIndex)]}
         railRot={railRot}
+        eager={Math.abs(k) <= 2}
       />
     );
   }
@@ -422,7 +428,9 @@ export default function ProductPage() {
 
       {/* 하단 그래픽 라인 — 20px 위로 */}
       <div style={{ overflow: "hidden", display: "flex", marginTop: "-20px" }}>
-        <img src="/Web_Graphic_Line_01.jpg" alt="" style={{ width: "100%", height: "20px", objectFit: "cover" }} />
+        <div style={{ position: "relative", width: "100%", height: "20px" }}>
+          <Image src="/Web_Graphic_Line_01.jpg" alt="" fill sizes="100vw" style={{ objectFit: "cover" }} />
+        </div>
       </div>
 
       {/* Footer note */}

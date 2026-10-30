@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import Image, { getImageProps } from "next/image";
 import Header from "@/components/Header";
 import { FONTS, COLORS } from "@/lib/assets";
 
@@ -75,6 +76,12 @@ const SESSIONS: Session[] = [
     startImgIdx: 5,
   },
 ];
+
+// 큰 사진을 motion.img로 보여줄 때 쓰는 최적화 src/srcSet
+const optimized = (src: string, sizes: string) => {
+  const { props } = getImageProps({ src, alt: "", width: 1920, height: 1920, sizes });
+  return { src: props.src, srcSet: props.srcSet, sizes: props.sizes };
+};
 
 function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -273,7 +280,7 @@ function ImageLightbox({ startIndex, onClose }: { startIndex: number; onClose: (
       <AnimatePresence mode="wait">
         <motion.img
           key={idx}
-          src={WORKSHOP_IMAGES[idx]}
+          {...optimized(WORKSHOP_IMAGES[idx], "90vw")}
           alt=""
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -396,7 +403,7 @@ function BookingModal({ session, onClose }: { session: Session; onClose: () => v
           <AnimatePresence>
             <motion.img
               key={imgIdx}
-              src={WORKSHOP_IMAGES[imgIdx]}
+              {...optimized(WORKSHOP_IMAGES[imgIdx], "50vw")}
               alt={session.name}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -638,10 +645,12 @@ function SessionCard({ s, idx, onClick }: { s: Session; idx: number; onClick: ()
         cursor: "pointer",
       }}
     >
-      <img
+      <Image
         src={s.image}
         alt={s.name}
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        fill
+        sizes="(max-width: 1200px) 34vw, 640px"
+        style={{ objectFit: "cover" }}
       />
       {/* Pink overlay + pattern on hover */}
       <div style={{
@@ -708,15 +717,15 @@ function HoverVideo({ image, video, alt }: { image: string; video: string; alt: 
       onMouseLeave={() => setHover(false)}
       style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#000" }}
     >
-      <img src={image} alt={alt}
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      <Image src={image} alt={alt} fill priority sizes="55vw" style={{ objectFit: "cover" }} />
       <video
         ref={videoRef}
         src={video}
         muted
         loop
         playsInline
-        preload="metadata"
+        // 호버한 뒤에 받기 시작하면 첫 재생이 늦다 — 미리 받아 둔다(6MB·12MB)
+        preload="auto"
         onPlaying={() => setReady(true)}
         // 브라우저가 리소스를 아끼려고 멈추더라도, 마우스가 올라가 있으면 다시 재생한다
         onPause={() => { if (hover) videoRef.current?.play().catch(() => {}); }}
@@ -864,13 +873,13 @@ export default function WorkshopPage() {
                 }}
               >
                 <div style={{
+                  position: "relative",
                   width: "clamp(80px, 9vw, 140px)", height: "clamp(80px, 9vw, 140px)",
                   borderRadius: "50%", overflow: "hidden", marginBottom: "10px",
                   border: circlePage === i ? `2px solid ${COLORS.pink}` : "2px solid rgba(128,128,128,0.2)",
                   transition: "border 0.3s ease",
                 }}>
-                  <img src={s.image} alt={s.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <Image src={s.image} alt={s.name} fill sizes="140px" style={{ objectFit: "cover" }} />
                 </div>
                 <h3 style={{
                   fontFamily: FONTS.condensed, fontWeight: 700,
